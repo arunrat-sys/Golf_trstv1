@@ -1,1 +1,106 @@
 @import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 999px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+
+  /* Focus ring style for inputs */
+  .input-field {
+    @apply w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-800 placeholder-gray-400 outline-none transition-all duration-200;
+  }
+  .input-field:focus {
+    @apply border-orange-300 ring-2 ring-orange-100;
+  }
+
+  /* Orange primary button */
+  .btn-primary {
+    @apply bg-[#FF7A05] hover:bg-[#e86d00] text-white font-medium rounded-xl shadow-sm transition-all duration-200;
+  }
+  .btn-primary:active {
+    @apply scale-[0.98];
+  }
+
+  /* Secondary button */
+  .btn-secondary {
+    @apply bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all duration-200;
+  }
+
+  /* Ghost / outline button */
+  .btn-ghost {
+    @apply border border-gray-200 bg-white hover:bg-gray-50 text-gray-600 font-medium rounded-xl transition-all duration-200;
+  }
+
+  /* Status pill badges */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-booked {
+    @apply bg-amber-50 text-amber-700 ring-1 ring-amber-200;
+  }
+  .badge-checked-in {
+    @apply bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200;
+  }
+  .badge-no-show {
+    @apply bg-gray-100 text-gray-500 ring-1 ring-gray-200;
+  }
+  .badge-member {
+    @apply bg-blue-50 text-blue-600 ring-1 ring-blue-200;
+  }
+  .badge-coach {
+    @apply bg-purple-50 text-purple-600 ring-1 ring-purple-200;
+  }
+
+  /* Card component */
+  .card {
+    @apply bg-white rounded-2xl shadow-xl ring-1 ring-gray-200;
+  }
+
+  /* Table row hover */
+  .table-row-hover {
+    @apply transition-colors duration-150 hover:bg-gray-50/80;
+  }
+
+  /* Modal overlay */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/40 backdrop-blur-xl flex items-center justify-center p-4 z-50;
+  }
+
+  /* Modal panel */
+  .modal-panel {
+    @apply bg-white rounded-2xl shadow-2xl ring-1 ring-gray-200 w-full;
+  }
+
+  /* Slot available */
+  .slot-available {
+    @apply border border-gray-200 border-dashed bg-gray-50/50 rounded-xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-all duration-200 text-gray-400 min-h-[70px];
+  }
+  .slot-available:hover {
+    @apply bg-orange-50 border-orange-300 text-orange-500 border-solid;
+  }
+
+  /* Header gradient */
+  .header-gradient {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  }
+}
