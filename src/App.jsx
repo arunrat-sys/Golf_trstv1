@@ -163,6 +163,9 @@ const TRANSLATIONS = {
   noBays: { th: 'ยังไม่มีเบย์', en: 'No bays yet', ja: 'ベイがありません' },
   editCoach: { th: 'แก้ไขโค้ช', en: 'Edit Coach', ja: 'コーチ編集' },
   addCoach: { th: 'เพิ่มโค้ชใหม่', en: 'Add New Coach', ja: '新規コーチ追加' },
+  coachPhone: { th: 'เบอร์โทร (ใช้ล็อกอิน)', en: 'Phone (for login)', ja: '電話番号（ログイン用）' },
+  coachPassword: { th: 'รหัสผ่าน', en: 'Password', ja: 'パスワード' },
+  coachAccountCreated: { th: 'สร้างบัญชีโค้ชเรียบร้อย', en: 'Coach account created', ja: 'コーチアカウント作成完了' },
   coachNamePH: { th: 'ชื่อโค้ช เช่น โค้ชดี', en: 'Coach name e.g. Coach D', ja: 'コーチ名 例: コーチD' },
   pricePerHourBaht: { th: 'ราคา/ชม. (บาท)', en: 'Price/hr (THB)', ja: '料金/時（バーツ）' },
   educationPH: { th: 'วุฒิการศึกษา / ใบรับรอง เช่น PGA Teaching Professional', en: 'Education/Certification e.g. PGA Teaching Professional', ja: '学歴/資格 例: PGA Teaching Professional' },
@@ -424,23 +427,40 @@ export default function App() {
   const [editingPkgId, setEditingPkgId] = useState(null);
   const [promoForm, setPromoForm] = useState({ code: '', type: 'percent', value: 0, expiryDate: '' });
   const [editingPromoId, setEditingPromoId] = useState(null);
-  const [coachForm, setCoachForm] = useState({ name: '', price: 1500, education: '', expertise: '', bio: '' });
+  const [coachForm, setCoachForm] = useState({ name: '', price: 1500, education: '', expertise: '', bio: '', phone: '', password: '1234' });
   const [editingCoachId, setEditingCoachId] = useState(null);
 
   // Coach CRUD
   const handleSaveCoach = () => {
     if (!coachForm.name.trim()) { alert(t('alertEnterCoachName')); return; }
     if (editingCoachId) {
+      const oldCoach = coaches.find(c => c.id === editingCoachId);
       setCoaches(coaches.map(c => c.id === editingCoachId ? { ...c, ...coachForm, name: coachForm.name.trim(), price: Number(coachForm.price) || 1500 } : c));
+      if (oldCoach) {
+        setAppUsers(appUsers.map(u => u.coachName === oldCoach.name ? { ...u, name: coachForm.name.trim(), coachName: coachForm.name.trim() } : u));
+      }
       setEditingCoachId(null);
     } else {
+      if (!coachForm.phone.trim()) { alert(t('coachPhone')); return; }
+      if (appUsers.some(u => u.phone === coachForm.phone.trim())) { alert(t('errPhoneUsed')); return; }
       setCoaches([...coaches, { ...coachForm, id: Date.now(), name: coachForm.name.trim(), price: Number(coachForm.price) || 1500, active: true }]);
+      const newCoachUser = {
+        id: Date.now() + 1,
+        name: coachForm.name.trim(),
+        phone: coachForm.phone.trim(),
+        password: coachForm.password || '1234',
+        role: 'coach',
+        coachName: coachForm.name.trim(),
+        avatar: '',
+      };
+      setAppUsers([...appUsers, newCoachUser]);
+      alert(`${t('coachAccountCreated')}\n${t('coachPhone')}: ${coachForm.phone.trim()}\n${t('coachPassword')}: ${coachForm.password || '1234'}`);
     }
-    setCoachForm({ name: '', price: 1500, education: '', expertise: '', bio: '' });
+    setCoachForm({ name: '', price: 1500, education: '', expertise: '', bio: '', phone: '', password: '1234' });
   };
   const handleEditCoach = (coach) => {
     setEditingCoachId(coach.id);
-    setCoachForm({ name: coach.name, price: coach.price, education: coach.education || '', expertise: coach.expertise || '', bio: coach.bio || '' });
+    setCoachForm({ name: coach.name, price: coach.price, education: coach.education || '', expertise: coach.expertise || '', bio: coach.bio || '', phone: '', password: '' });
   };
   const handleToggleCoach = (id) => setCoaches(coaches.map(c => c.id === id ? { ...c, active: !c.active } : c));
   const handleDeleteCoach = (id) => {
@@ -1255,22 +1275,18 @@ export default function App() {
       setAuthError(t('errPhoneUsed'));
       return;
     }
-    if (authRole === 'coach' && !authCoachName.trim()) {
-      setAuthError(t('errEnterCoachName'));
-      return;
-    }
     const newUser = {
       id: Date.now(),
       name: authName.trim(),
       phone: authPhone.trim(),
       password: authPassword,
-      role: authRole,
-      coachName: authRole === 'coach' ? authCoachName.trim() : '',
+      role: 'customer',
+      coachName: '',
+      avatar: '',
     };
     setAppUsers([...appUsers, newUser]);
     setCurrentUser(newUser);
-    if (newUser.role === 'coach') setViewMode('coach-schedule');
-    else setViewMode('daily');
+    setViewMode('daily');
     setAuthPhone('');
     setAuthPassword('');
     setAuthName('');
@@ -1443,65 +1459,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Role Selection */}
-                <div>
-                  <label className="text-gray-600 text-sm font-medium mb-2 block">{t('accountType')}</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setAuthRole('customer')}
-                      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl text-sm font-medium transition-all ${
-                        authRole === 'customer'
-                          ? 'ring-2 ring-[#FF7A05] bg-orange-50 text-[#FF7A05]'
-                          : 'ring-1 ring-gray-200 bg-white text-gray-500 hover:ring-gray-300'
-                      }`}
-                    >
-                      <UserCircle size={20} />
-                      {t('customer')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAuthRole('coach')}
-                      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl text-sm font-medium transition-all ${
-                        authRole === 'coach'
-                          ? 'ring-2 ring-purple-500 bg-purple-50 text-purple-600'
-                          : 'ring-1 ring-gray-200 bg-white text-gray-500 hover:ring-gray-300'
-                      }`}
-                    >
-                      <GraduationCap size={20} />
-                      {t('coach')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAuthRole('admin')}
-                      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl text-sm font-medium transition-all ${
-                        authRole === 'admin'
-                          ? 'ring-2 ring-gray-900 bg-gray-50 text-gray-900'
-                          : 'ring-1 ring-gray-200 bg-white text-gray-500 hover:ring-gray-300'
-                      }`}
-                    >
-                      <Shield size={20} />
-                      {t('admin')}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Coach Name (only for coach role) */}
-                {authRole === 'coach' && (
-                  <div>
-                    <label className="flex items-center gap-2 text-gray-600 text-sm font-medium mb-1.5">
-                      <GraduationCap size={14} /> {t('coachNameLabel')}
-                    </label>
-                    <input
-                      type="text"
-                      className="input-field"
-                      value={authCoachName}
-                      onChange={(e) => setAuthCoachName(e.target.value)}
-                      placeholder={t('coachNamePlaceholder')}
-                      required
-                    />
-                  </div>
-                )}
+                {/* Role is always customer for public registration */}
 
                 {authError && (
                   <div className="bg-red-50 ring-1 ring-red-200 text-red-600 text-sm p-3 rounded-xl flex items-center gap-2">
@@ -1953,35 +1911,67 @@ export default function App() {
                       </tr>
                     </thead>
                     <tbody>
-                      {members.map((member, idx) => (
-                        <tr key={idx} className="border-b border-gray-50 table-row-hover">
-                          <td className="px-4 py-3.5 font-medium text-gray-800">{member.name}</td>
-                          <td className="px-4 py-3.5 text-gray-600 text-sm">{member.phone}</td>
-                          <td className="px-4 py-3.5 text-gray-400 text-sm">
-                            {member.lineId && <div className="flex items-center gap-1.5"><MessageCircle size={13}/> {member.lineId}</div>}
-                            {member.email && <div className="flex items-center gap-1.5 mt-0.5"><Mail size={13}/> {member.email}</div>}
-                          </td>
-                          <td className="px-4 py-3.5 text-center">
-                            <div className="flex flex-col items-center gap-1">
-                              <span className={`badge ${member.trackmanHours > 0 ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : 'bg-red-50 text-red-600 ring-1 ring-red-200'}`}>
-                                {member.trackmanHours} / {member.trackmanBought} ชม.
-                              </span>
-                              {member.trackmanCoach && <span className="text-[10px] text-purple-600 font-medium flex items-center gap-0.5"><GraduationCap size={10}/> {member.trackmanCoach}</span>}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3.5 text-center">
-                            <div className="flex flex-col items-center gap-1">
-                              <span className={`badge ${member.foresightHours > 0 ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : 'bg-red-50 text-red-600 ring-1 ring-red-200'}`}>
-                                {member.foresightHours} / {member.foresightBought} ชม.
-                              </span>
-                              {member.foresightCoach && <span className="text-[10px] text-purple-600 font-medium flex items-center gap-0.5"><GraduationCap size={10}/> {member.foresightCoach}</span>}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {members.length === 0 && (
-                        <tr><td colSpan="5" className="p-8 text-center text-gray-400">{t('noMembers')}</td></tr>
-                      )}
+                      {(() => {
+                        // Merge all customers (from appUsers) with their member/course data
+                        const customerUsers = appUsers.filter(u => u.role === 'customer');
+                        const allRows = customerUsers.map(u => {
+                          const m = members.find(mb => mb.phone === u.phone);
+                          return {
+                            name: u.name,
+                            phone: u.phone,
+                            lineId: m?.lineId || '',
+                            email: m?.email || '',
+                            trackmanHours: m?.trackmanHours || 0,
+                            trackmanBought: m?.trackmanBought || 0,
+                            trackmanCoach: m?.trackmanCoach || '',
+                            foresightHours: m?.foresightHours || 0,
+                            foresightBought: m?.foresightBought || 0,
+                            foresightCoach: m?.foresightCoach || '',
+                          };
+                        });
+                        // Also add members that aren't registered users (walk-in purchases)
+                        members.forEach(m => {
+                          if (!allRows.some(r => r.phone === m.phone)) {
+                            allRows.push({ ...m });
+                          }
+                        });
+                        return allRows.length > 0 ? allRows.map((member, idx) => (
+                          <tr key={idx} className="border-b border-gray-50 table-row-hover">
+                            <td className="px-4 py-3.5 font-medium text-gray-800">{member.name}</td>
+                            <td className="px-4 py-3.5 text-gray-600 text-sm">{member.phone}</td>
+                            <td className="px-4 py-3.5 text-gray-400 text-sm">
+                              {member.lineId && <div className="flex items-center gap-1.5"><MessageCircle size={13}/> {member.lineId}</div>}
+                              {member.email && <div className="flex items-center gap-1.5 mt-0.5"><Mail size={13}/> {member.email}</div>}
+                            </td>
+                            <td className="px-4 py-3.5 text-center">
+                              {member.trackmanBought > 0 ? (
+                                <div className="flex flex-col items-center gap-1">
+                                  <span className={`badge ${member.trackmanHours > 0 ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' : 'bg-red-50 text-red-600 ring-1 ring-red-200'}`}>
+                                    {member.trackmanHours} / {member.trackmanBought} {t('hoursUnit')}
+                                  </span>
+                                  {member.trackmanCoach && <span className="text-[10px] text-purple-600 font-medium flex items-center gap-0.5"><GraduationCap size={10}/> {member.trackmanCoach}</span>}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-gray-300">—</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3.5 text-center">
+                              {member.foresightBought > 0 ? (
+                                <div className="flex flex-col items-center gap-1">
+                                  <span className={`badge ${member.foresightHours > 0 ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : 'bg-red-50 text-red-600 ring-1 ring-red-200'}`}>
+                                    {member.foresightHours} / {member.foresightBought} {t('hoursUnit')}
+                                  </span>
+                                  {member.foresightCoach && <span className="text-[10px] text-purple-600 font-medium flex items-center gap-0.5"><GraduationCap size={10}/> {member.foresightCoach}</span>}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-gray-300">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        )) : (
+                          <tr><td colSpan="5" className="p-8 text-center text-gray-400">{t('noMembers')}</td></tr>
+                        );
+                      })()}
                     </tbody>
                   </table>
                 </div>
@@ -2753,6 +2743,25 @@ export default function App() {
                         onChange={(e) => setCoachForm({ ...coachForm, price: e.target.value })}
                       />
                     </div>
+                    {/* Phone & Password - only for new coach */}
+                    {!editingCoachId && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                        <input
+                          type="tel"
+                          className="input-field"
+                          placeholder={t('coachPhone')}
+                          value={coachForm.phone}
+                          onChange={(e) => setCoachForm({ ...coachForm, phone: e.target.value })}
+                        />
+                        <input
+                          type="text"
+                          className="input-field"
+                          placeholder={t('coachPassword')}
+                          value={coachForm.password}
+                          onChange={(e) => setCoachForm({ ...coachForm, password: e.target.value })}
+                        />
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                       <input
                         type="text"
