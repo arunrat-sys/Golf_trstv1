@@ -154,6 +154,8 @@ const TRANSLATIONS = {
   dailySummary: { th: 'สรุปรายวัน', en: 'Daily Summary', ja: '日別集計', ru: 'По дням', zh: '每日汇总' },
   date: { th: 'วันที่', en: 'Date', ja: '日付', ru: 'Дата', zh: '日期' },
   noShowCol: { th: 'ไม่มา', en: 'No-show', ja: '不参加', ru: 'Не пришёл', zh: '未到' },
+  memberCol: { th: 'สมาชิก', en: 'Member', ja: '会員', ru: 'Член', zh: '会员' },
+  walkInCol: { th: 'Walk-in', en: 'Walk-in', ja: 'ウォークイン', ru: 'Walk-in', zh: '散客' },
   grandTotal: { th: 'รวมทั้งหมด', en: 'Grand Total', ja: '合計', ru: 'Итого', zh: '总计' },
   noDataForRange: { th: 'ไม่มีข้อมูลการจองในช่วงเวลาที่เลือก', en: 'No booking data for selected period', ja: '選択期間の予約データなし', ru: 'Нет данных за период', zh: '所选时段无预订数据' },
   allBookings: { th: 'รายการจองทั้งหมด', en: 'All Bookings', ja: '全予約一覧', ru: 'Все бронирования', zh: '所有预订' },
@@ -1369,11 +1371,13 @@ export default function App() {
     // Per-day breakdown
     const byDay = {};
     filtered.forEach(b => {
-      if (!byDay[b.date]) byDay[b.date] = { date: b.date, total: 0, revenue: 0, checkedIn: 0, noShow: 0 };
+      if (!byDay[b.date]) byDay[b.date] = { date: b.date, total: 0, revenue: 0, checkedIn: 0, noShow: 0, member: 0, walkIn: 0 };
       byDay[b.date].total++;
       if (b.status !== 'no-show') byDay[b.date].revenue += b.price;
       if (b.status === 'checked-in') byDay[b.date].checkedIn++;
       if (b.status === 'no-show') byDay[b.date].noShow++;
+      if (b.usedQuota) byDay[b.date].member++;
+      else byDay[b.date].walkIn++;
     });
     const dailyBreakdown = Object.values(byDay).sort((a, b) => a.date.localeCompare(b.date));
 
@@ -3239,6 +3243,8 @@ export default function App() {
                       <tr className="border-b border-gray-100 text-sm text-gray-500">
                         <th className="px-4 py-3 font-medium">{t('date')}</th>
                         <th className="px-4 py-3 font-medium text-center">{t('bookingCount')}</th>
+                        <th className="px-4 py-3 font-medium text-center">{t('memberCol')}</th>
+                        <th className="px-4 py-3 font-medium text-center">{t('walkInCol')}</th>
                         <th className="px-4 py-3 font-medium text-center">{t('checkinCount')}</th>
                         <th className="px-4 py-3 font-medium text-center">{t('noShowCol')}</th>
                         <th className="px-4 py-3 font-medium text-right">{t('revenue')}</th>
@@ -3251,6 +3257,8 @@ export default function App() {
                             {new Date(day.date).toLocaleDateString(currentLocale, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
                           </td>
                           <td className="px-4 py-3 text-sm text-center text-gray-700">{day.total}</td>
+                          <td className="px-4 py-3 text-sm text-center text-blue-600 font-medium">{day.member}</td>
+                          <td className="px-4 py-3 text-sm text-center text-gray-500">{day.walkIn}</td>
                           <td className="px-4 py-3 text-sm text-center text-emerald-600 font-medium">{day.checkedIn}</td>
                           <td className="px-4 py-3 text-sm text-center text-gray-400">{day.noShow}</td>
                           <td className="px-4 py-3 text-sm text-right font-semibold text-[#FF7A05]">฿{day.revenue.toLocaleString()}</td>
@@ -3260,6 +3268,8 @@ export default function App() {
                       <tr className="border-t-2 border-gray-200 bg-gray-50/50">
                         <td className="px-4 py-3 text-sm font-semibold text-gray-900">{t('grandTotal')}</td>
                         <td className="px-4 py-3 text-sm text-center font-semibold text-gray-900">{reportData.totalBookings}</td>
+                        <td className="px-4 py-3 text-sm text-center font-semibold text-blue-600">{reportData.memberQuotaUsed}</td>
+                        <td className="px-4 py-3 text-sm text-center font-semibold text-gray-500">{reportData.totalBookings - reportData.memberQuotaUsed}</td>
                         <td className="px-4 py-3 text-sm text-center font-semibold text-emerald-600">{reportData.checkedIn}</td>
                         <td className="px-4 py-3 text-sm text-center font-semibold text-gray-400">{reportData.noShow}</td>
                         <td className="px-4 py-3 text-sm text-right font-semibold text-[#FF7A05]">฿{reportData.totalRevenue.toLocaleString()}</td>
@@ -3428,7 +3438,7 @@ export default function App() {
               </div>
 
               {/* Settings Tabs */}
-              <div className="flex gap-1 bg-gray-100/80 p-1 rounded-xl mb-6">
+              <div className="flex gap-1 bg-gray-100/80 p-1 rounded-xl mb-6 overflow-x-auto custom-scrollbar">
                 {[
                   { key: 'bays', label: t('baysTab'), icon: <Monitor size={15} /> },
                   { key: 'coaches', label: t('coachesTab'), icon: <GraduationCap size={15} /> },
@@ -3439,7 +3449,7 @@ export default function App() {
                   <button
                     key={tab.key}
                     onClick={() => setAdminTab(tab.key)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap min-w-fit ${
                       adminTab === tab.key
                         ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200'
                         : 'text-gray-500 hover:text-gray-700'
