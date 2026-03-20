@@ -1499,8 +1499,9 @@ export default function App() {
     }
   };
 
+  const hasSpecialChar = (pw) => /[^A-Za-z0-9]/.test(pw);
   const isPasswordStrong = (pw) => {
-    return pw.length >= 8 && /[A-Z]/.test(pw) && /[0-9]/.test(pw) && /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw);
+    return pw.length >= 8 && /[A-Z]/.test(pw) && /[0-9]/.test(pw) && hasSpecialChar(pw);
   };
 
   const handleRegister = async (e) => {
@@ -1875,7 +1876,7 @@ export default function App() {
                         { ok: authPassword.length >= 8, label: '8+' },
                         { ok: /[A-Z]/.test(authPassword), label: 'A-Z' },
                         { ok: /[0-9]/.test(authPassword), label: '0-9' },
-                        { ok: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(authPassword), label: '!@#' },
+                        { ok: hasSpecialChar(authPassword), label: '!@#' },
                       ].map((r, i) => (
                         <span key={i} className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${r.ok ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400'}`}>
                           {r.ok ? '✓' : '✗'} {r.label}
