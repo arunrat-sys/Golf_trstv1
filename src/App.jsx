@@ -3559,17 +3559,17 @@ export default function App() {
                 <TrendingUp size={16} className="text-gray-400" /> {t('dailySummary')}
               </h3>
               {reportData.dailyBreakdown.length > 0 ? (
-                <div className="overflow-x-auto custom-scrollbar">
+                <div className="overflow-auto custom-scrollbar max-h-[50vh]">
                   <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-sm text-gray-500">
-                        <th className="px-4 py-3 font-medium">{t('date')}</th>
-                        <th className="px-4 py-3 font-medium text-center">{t('bookingCount')}</th>
-                        <th className="px-4 py-3 font-medium text-center">{t('memberCol')}</th>
-                        <th className="px-4 py-3 font-medium text-center">{t('walkInCol')}</th>
-                        <th className="px-4 py-3 font-medium text-center">{t('checkinCount')}</th>
-                        <th className="px-4 py-3 font-medium text-center">{t('noShowCol')}</th>
-                        <th className="px-4 py-3 font-medium text-right">{t('revenue')}</th>
+                    <thead className="sticky top-0 bg-white z-10">
+                      <tr className="border-b border-gray-200 text-sm text-gray-500">
+                        <th className="px-4 py-3 font-medium bg-white">{t('date')}</th>
+                        <th className="px-4 py-3 font-medium text-center bg-white">{t('bookingCount')}</th>
+                        <th className="px-4 py-3 font-medium text-center bg-white">{t('memberCol')}</th>
+                        <th className="px-4 py-3 font-medium text-center bg-white">{t('walkInCol')}</th>
+                        <th className="px-4 py-3 font-medium text-center bg-white">{t('checkinCount')}</th>
+                        <th className="px-4 py-3 font-medium text-center bg-white">{t('noShowCol')}</th>
+                        <th className="px-4 py-3 font-medium text-right bg-white">{t('revenue')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3613,16 +3613,16 @@ export default function App() {
                 <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Calendar size={16} className="text-gray-400" /> {t('allBookings')} ({reportData.filtered.length} {t('items')})
                 </h3>
-                <div className="overflow-x-auto custom-scrollbar">
+                <div className="overflow-auto custom-scrollbar max-h-[50vh]">
                   <table className="w-full text-left border-collapse min-w-[700px]">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-sm text-gray-500">
-                        <th className="px-3 py-3 font-medium">{t('date')}</th>
-                        <th className="px-3 py-3 font-medium">{t('timeCol')}</th>
-                        <th className="px-3 py-3 font-medium">{t('machine')}</th>
-                        <th className="px-3 py-3 font-medium">{t('customerCol')}</th>
-                        <th className="px-3 py-3 font-medium text-center">{t('statusCol')}</th>
-                        <th className="px-3 py-3 font-medium text-right">{t('amount')}</th>
+                    <thead className="sticky top-0 bg-white z-10">
+                      <tr className="border-b border-gray-200 text-sm text-gray-500">
+                        <th className="px-3 py-3 font-medium bg-white">{t('date')}</th>
+                        <th className="px-3 py-3 font-medium bg-white">{t('timeCol')}</th>
+                        <th className="px-3 py-3 font-medium bg-white">{t('machine')}</th>
+                        <th className="px-3 py-3 font-medium bg-white">{t('customerCol')}</th>
+                        <th className="px-3 py-3 font-medium text-center bg-white">{t('statusCol')}</th>
+                        <th className="px-3 py-3 font-medium text-right bg-white">{t('amount')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3809,7 +3809,11 @@ export default function App() {
               {/* ========== BAYS TAB ========== */}
               {adminTab === 'bays' && (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-end">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center"><Monitor size={16} className="text-blue-600" /></div>
+                      <div><h4 className="text-sm font-semibold text-gray-900">{t('baysTab')}</h4><p className="text-xs text-gray-400">{bays.length} {t('items') || 'รายการ'}</p></div>
+                    </div>
                     <button onClick={() => { setEditingBayId(null); setBayForm({ name: '', type: 'foresight', price: 1000 }); setShowBayFormModal(true); }} className="btn-primary px-4 py-2 flex items-center gap-1.5 text-sm">
                       <Plus size={15} /> {t('addBay')}
                     </button>
@@ -3854,20 +3858,20 @@ export default function App() {
               {/* ========== COACHES TAB ========== */}
               {adminTab === 'coaches' && (
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="relative flex-1">
-                      <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        className="input-field pl-9 py-2 text-sm"
-                        placeholder={t('searchCoachPlaceholder') || 'ค้นหาชื่อโค้ช...'}
-                        value={coachSearch}
-                        onChange={(e) => setCoachSearch(e.target.value)}
-                      />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center"><GraduationCap size={16} className="text-purple-600" /></div>
+                      <div><h4 className="text-sm font-semibold text-gray-900">{t('coachesTab')}</h4><p className="text-xs text-gray-400">{coaches.length} {t('items') || 'รายการ'}</p></div>
                     </div>
-                    <button onClick={() => { setEditingCoachId(null); setCoachForm({ name: '', price: 1500, education: '', expertise: '', bio: '', phone: '', password: '1234' }); setShowCoachFormModal(true); }} className="btn-primary px-4 py-2 flex items-center gap-1.5 text-sm shrink-0">
-                      <Plus size={15} /> {t('addCoach')}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <Filter size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input type="text" className="input-field pl-8 py-1.5 text-xs w-40" placeholder={t('searchCoachPlaceholder') || 'ค้นหา...'} value={coachSearch} onChange={(e) => setCoachSearch(e.target.value)} />
+                      </div>
+                      <button onClick={() => { setEditingCoachId(null); setCoachForm({ name: '', price: 1500, education: '', expertise: '', bio: '', phone: '', password: '1234' }); setShowCoachFormModal(true); }} className="btn-primary px-3 py-1.5 flex items-center gap-1.5 text-sm shrink-0">
+                        <Plus size={14} /> {t('addCoach')}
+                      </button>
+                    </div>
                   </div>
                   <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
                     {coaches.filter(c => {
@@ -3923,9 +3927,13 @@ export default function App() {
               {/* ========== PACKAGES TAB ========== */}
               {adminTab === 'packages' && (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-end">
-                    <button onClick={() => { setEditingPkgId(null); setPkgForm({ name: '', hours: 1, price: 0, machineType: 'trackman', highlight: false, save: '', desc: '' }); setShowPkgFormModal(true); }} className="btn-primary px-4 py-2 flex items-center gap-1.5 text-sm">
-                      <Plus size={15} /> {t('addPkg')}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center"><ShoppingCart size={16} className="text-orange-600" /></div>
+                      <div><h4 className="text-sm font-semibold text-gray-900">{t('packagesTab')}</h4><p className="text-xs text-gray-400">{packages.length} {t('items') || 'รายการ'}</p></div>
+                    </div>
+                    <button onClick={() => { setEditingPkgId(null); setPkgForm({ name: '', hours: 1, price: 0, machineType: 'trackman', highlight: false, save: '', desc: '' }); setShowPkgFormModal(true); }} className="btn-primary px-3 py-1.5 flex items-center gap-1.5 text-sm">
+                      <Plus size={14} /> {t('addPkg')}
                     </button>
                   </div>
                   <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
@@ -3969,9 +3977,13 @@ export default function App() {
               {/* ========== PROMOS TAB ========== */}
               {adminTab === 'promos' && (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-end">
-                    <button onClick={() => { setEditingPromoId(null); setPromoForm({ code: '', type: 'percent', value: 0, expiryDate: '' }); setShowPromoFormModal(true); }} className="btn-primary px-4 py-2 flex items-center gap-1.5 text-sm">
-                      <Plus size={15} /> {t('addPromo')}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center"><Tag size={16} className="text-amber-600" /></div>
+                      <div><h4 className="text-sm font-semibold text-gray-900">{t('promosTab')}</h4><p className="text-xs text-gray-400">{promoCodes.length} {t('items') || 'รายการ'}</p></div>
+                    </div>
+                    <button onClick={() => { setEditingPromoId(null); setPromoForm({ code: '', type: 'percent', value: 0, expiryDate: '' }); setShowPromoFormModal(true); }} className="btn-primary px-3 py-1.5 flex items-center gap-1.5 text-sm">
+                      <Plus size={14} /> {t('addPromo')}
                     </button>
                   </div>
                   <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
@@ -4019,16 +4031,14 @@ export default function App() {
               {/* ========== USERS TAB ========== */}
               {adminTab === 'users' && (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-end">
-                    <div className="relative w-64">
-                      <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        className="input-field pl-9 py-2 text-sm"
-                        placeholder={t('searchUserPlaceholder') || 'ค้นหาชื่อ หรือเบอร์โทร...'}
-                        value={userSearch}
-                        onChange={(e) => setUserSearch(e.target.value)}
-                      />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center"><Users size={16} className="text-sky-600" /></div>
+                      <div><h4 className="text-sm font-semibold text-gray-900">{t('usersTab')}</h4><p className="text-xs text-gray-400">{appUsers.length} {t('items') || 'รายการ'}</p></div>
+                    </div>
+                    <div className="relative">
+                      <Filter size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <input type="text" className="input-field pl-8 py-1.5 text-xs w-44" placeholder={t('searchUserPlaceholder') || 'ค้นหา...'} value={userSearch} onChange={(e) => setUserSearch(e.target.value)} />
                     </div>
                   </div>
                   <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
