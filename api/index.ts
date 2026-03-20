@@ -135,6 +135,70 @@ export default async function handler(req: any, res: any) {
       return json(res, user);
     }
 
+    // ===== GOOGLE LOGIN =====
+    if (url === '/api/auth/google/callback' && method === 'POST') {
+      const { code, redirectUri } = await parseBody(req);
+      const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+      const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+
+      // Exchange code for tokens
+      const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          code,
+          redirect_uri: redirectUri,
+          client_id: GOOGLE_CLIENT_ID!,
+          client_secret: GOOGLE_CLIENT_SECRET!,
+        }),
+      });
+      if (!tokenRes.ok) {
+        const err = await tokenRes.text();
+        console.error('Google token error:', err);
+        return json(res, { error: 'Google authentication failed' }, 401);
+      }
+      const tokenData = await tokenRes.json();
+
+      // Get user info
+      const profileRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` },
+      });
+      if (!profileRes.ok) {
+        return json(res, { error: 'Failed to get Google profile' }, 401);
+      }
+      const profile = await profileRes.json();
+      // profile: { id, email, name, picture }
+
+      // Find or create user by Google ID (stored in lineId field as GOOGLE_ prefix)
+      const googleId = 'GOOGLE_' + profile.id;
+      let user = await queryOne('SELECT * FROM "User" WHERE "lineId" = $1', [googleId]);
+      if (!user) {
+        // Also check by email in phone field (in case previously registered with email)
+        user = await queryOne('SELECT * FROM "User" WHERE phone = $1', [profile.email]);
+        if (user) {
+          // Link existing account with Google
+          user = await queryOne(
+            'UPDATE "User" SET "lineId" = $1, avatar = COALESCE($2, avatar) WHERE id = $3 RETURNING *',
+            [googleId, profile.picture || null, user.id]
+          );
+        } else {
+          // Create new user
+          user = await queryOne(
+            'INSERT INTO "User" (name, phone, password, role, "lineId", avatar) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [profile.name, profile.email, '', 'customer', googleId, profile.picture || null]
+          );
+        }
+      } else {
+        // Update avatar and name
+        user = await queryOne(
+          'UPDATE "User" SET name = $1, avatar = COALESCE($2, avatar) WHERE id = $3 RETURNING *',
+          [profile.name, profile.picture, user.id]
+        );
+      }
+      return json(res, user);
+    }
+
     // ===== USERS =====
     if (url === '/api/users' && method === 'GET') {
       const users = await query('SELECT * FROM "User" ORDER BY id ASC');
