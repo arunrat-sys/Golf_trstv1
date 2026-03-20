@@ -626,6 +626,10 @@ export default function App() {
   const [adminTab, setAdminTab] = useState('bays');
   const [userSearch, setUserSearch] = useState('');
   const [coachSearch, setCoachSearch] = useState('');
+  const [showBayFormModal, setShowBayFormModal] = useState(false);
+  const [showCoachFormModal, setShowCoachFormModal] = useState(false);
+  const [showPromoFormModal, setShowPromoFormModal] = useState(false);
+  const [showPkgFormModal, setShowPkgFormModal] = useState(false);
   const [bayForm, setBayForm] = useState({ name: '', type: 'foresight', price: 1000 });
   const [editingBayId, setEditingBayId] = useState(null);
   const [pkgForm, setPkgForm] = useState({ name: '', hours: 1, price: 0, machineType: 'trackman', highlight: false, save: '', desc: '' });
@@ -3804,52 +3808,13 @@ export default function App() {
 
               {/* ========== BAYS TAB ========== */}
               {adminTab === 'bays' && (
-                <div className="space-y-4">
-                  {/* Add/Edit Bay Form */}
-                  <div className="bg-gray-50 rounded-xl p-4 ring-1 ring-gray-100">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                      <Plus size={15} /> {editingBayId ? t('editBay') : t('addBay')}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                      <input
-                        type="text"
-                        className="input-field"
-                        placeholder={t('bayNamePlaceholder')}
-                        value={bayForm.name}
-                        onChange={(e) => setBayForm({ ...bayForm, name: e.target.value })}
-                      />
-                      <select
-                        className="input-field"
-                        value={bayForm.type || ''}
-                        onChange={(e) => setBayForm({ ...bayForm, type: e.target.value || null })}
-                      >
-                        <option value="">{t('noType')}</option>
-                        <option value="trackman">Trackman</option>
-                        <option value="foresight">Foresight</option>
-                      </select>
-                      <input
-                        type="number"
-                        className="input-field"
-                        placeholder={t('pricePerHour')}
-                        value={bayForm.price}
-                        onChange={(e) => setBayForm({ ...bayForm, price: e.target.value })}
-                      />
-                      <div className="flex gap-2">
-                        <button onClick={handleSaveBay} className="btn-primary px-4 py-2.5 flex-1 flex items-center justify-center gap-1.5 text-sm">
-                          {editingBayId ? <Pencil size={14} /> : <Plus size={14} />}
-                          {editingBayId ? t('save') : t('add')}
-                        </button>
-                        {editingBayId && (
-                          <button onClick={() => { setEditingBayId(null); setBayForm({ name: '', type: 'foresight', price: 1000 }); }} className="btn-ghost px-3 py-2.5 text-sm">
-                            {t('cancel')}
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-end">
+                    <button onClick={() => { setEditingBayId(null); setBayForm({ name: '', type: 'foresight', price: 1000 }); setShowBayFormModal(true); }} className="btn-primary px-4 py-2 flex items-center gap-1.5 text-sm">
+                      <Plus size={15} /> {t('addBay')}
+                    </button>
                   </div>
-
-                  {/* Bay List */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
                     {bays.map((bay) => (
                       <div key={bay.id} className={`flex items-center justify-between p-4 rounded-xl ring-1 transition-all ${bay.active ? 'bg-white ring-gray-200' : 'bg-gray-50 ring-gray-100 opacity-60'}`}>
                         <div className="flex items-center gap-3">
@@ -3872,7 +3837,7 @@ export default function App() {
                           <button onClick={() => handleToggleBay(bay.id)} className={`p-2 rounded-lg transition-colors ${bay.active ? 'text-emerald-500 hover:bg-emerald-50' : 'text-gray-400 hover:bg-gray-100'}`}>
                             {bay.active ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
                           </button>
-                          <button onClick={() => handleEditBay(bay)} className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
+                          <button onClick={() => { handleEditBay(bay); setShowBayFormModal(true); }} className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
                             <Pencil size={16} />
                           </button>
                           <button onClick={() => handleDeleteBay(bay.id)} className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
@@ -3888,95 +3853,21 @@ export default function App() {
 
               {/* ========== COACHES TAB ========== */}
               {adminTab === 'coaches' && (
-                <div className="space-y-4">
-                  {/* Add/Edit Coach Form */}
-                  <div className="bg-gray-50 rounded-xl p-4 ring-1 ring-gray-100">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                      <Plus size={15} /> {editingCoachId ? t('editCoach') : t('addCoach')}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex-1">
+                      <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                       <input
                         type="text"
-                        className="input-field"
-                        placeholder={t('coachNamePH')}
-                        value={coachForm.name}
-                        onChange={(e) => setCoachForm({ ...coachForm, name: e.target.value })}
-                      />
-                      <input
-                        type="number"
-                        className="input-field"
-                        placeholder={t('pricePerHourBaht')}
-                        value={coachForm.price}
-                        onChange={(e) => setCoachForm({ ...coachForm, price: e.target.value })}
+                        className="input-field pl-9 py-2 text-sm"
+                        placeholder={t('searchCoachPlaceholder') || 'ค้นหาชื่อโค้ช...'}
+                        value={coachSearch}
+                        onChange={(e) => setCoachSearch(e.target.value)}
                       />
                     </div>
-                    {/* Phone & Password - only for new coach */}
-                    {!editingCoachId && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                        <input
-                          type="tel"
-                          className="input-field"
-                          placeholder={t('coachPhone')}
-                          value={coachForm.phone}
-                          onChange={(e) => setCoachForm({ ...coachForm, phone: e.target.value })}
-                        />
-                        <input
-                          type="text"
-                          className="input-field"
-                          placeholder={t('coachPassword')}
-                          value={coachForm.password}
-                          onChange={(e) => setCoachForm({ ...coachForm, password: e.target.value })}
-                        />
-                      </div>
-                    )}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                      <input
-                        type="text"
-                        className="input-field"
-                        placeholder={t('educationPH')}
-                        value={coachForm.education}
-                        onChange={(e) => setCoachForm({ ...coachForm, education: e.target.value })}
-                      />
-                      <input
-                        type="text"
-                        className="input-field"
-                        placeholder={t('expertisePH')}
-                        value={coachForm.expertise}
-                        onChange={(e) => setCoachForm({ ...coachForm, expertise: e.target.value })}
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 gap-3 mb-3">
-                      <input
-                        type="text"
-                        className="input-field"
-                        placeholder={t('bioPH')}
-                        value={coachForm.bio}
-                        onChange={(e) => setCoachForm({ ...coachForm, bio: e.target.value })}
-                      />
-                    </div>
-                    <div className="flex gap-2 justify-end">
-                      <button onClick={handleSaveCoach} className="btn-primary px-4 py-2.5 flex items-center gap-1.5 text-sm">
-                        {editingCoachId ? <Pencil size={14} /> : <Plus size={14} />}
-                        {editingCoachId ? t('save') : t('addCoachBtn')}
-                      </button>
-                      {editingCoachId && (
-                        <button onClick={() => { setEditingCoachId(null); setCoachForm({ name: '', price: 1500, education: '', expertise: '', bio: '' }); }} className="btn-ghost px-3 py-2.5 text-sm">
-                          {t('cancel')}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Coach Search + List */}
-                  <div className="relative mb-3">
-                    <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      className="input-field pl-10"
-                      placeholder={t('searchCoachPlaceholder') || 'ค้นหาชื่อโค้ช...'}
-                      value={coachSearch}
-                      onChange={(e) => setCoachSearch(e.target.value)}
-                    />
+                    <button onClick={() => { setEditingCoachId(null); setCoachForm({ name: '', price: 1500, education: '', expertise: '', bio: '', phone: '', password: '1234' }); setShowCoachFormModal(true); }} className="btn-primary px-4 py-2 flex items-center gap-1.5 text-sm shrink-0">
+                      <Plus size={15} /> {t('addCoach')}
+                    </button>
                   </div>
                   <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
                     {coaches.filter(c => {
@@ -4003,7 +3894,7 @@ export default function App() {
                             <button onClick={() => handleToggleCoach(coach.id)} className={`p-2 rounded-lg transition-colors ${coach.active ? 'text-emerald-500 hover:bg-emerald-50' : 'text-gray-400 hover:bg-gray-100'}`}>
                               {coach.active ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
                             </button>
-                            <button onClick={() => handleEditCoach(coach)} className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
+                            <button onClick={() => { handleEditCoach(coach); setShowCoachFormModal(true); }} className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
                               <Pencil size={16} />
                             </button>
                             <button onClick={() => handleDeleteCoach(coach.id)} className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
@@ -4031,85 +3922,13 @@ export default function App() {
 
               {/* ========== PACKAGES TAB ========== */}
               {adminTab === 'packages' && (
-                <div className="space-y-4">
-                  {/* Add/Edit Package Form */}
-                  <div className="bg-gray-50 rounded-xl p-4 ring-1 ring-gray-100">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                      <Plus size={15} /> {editingPkgId ? t('editPkg') : t('addPkg')}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                      <input
-                        type="text"
-                        className="input-field"
-                        placeholder={t('pkgNamePH')}
-                        value={pkgForm.name}
-                        onChange={(e) => setPkgForm({ ...pkgForm, name: e.target.value })}
-                      />
-                      <select
-                        className="input-field"
-                        value={pkgForm.machineType}
-                        onChange={(e) => setPkgForm({ ...pkgForm, machineType: e.target.value })}
-                      >
-                        <option value="trackman">Trackman</option>
-                        <option value="foresight">Foresight</option>
-                      </select>
-                      <input
-                        type="number"
-                        className="input-field"
-                        placeholder={t('numHours')}
-                        value={pkgForm.hours}
-                        onChange={(e) => setPkgForm({ ...pkgForm, hours: e.target.value })}
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                      <input
-                        type="number"
-                        className="input-field"
-                        placeholder={t('priceBaht')}
-                        value={pkgForm.price}
-                        onChange={(e) => setPkgForm({ ...pkgForm, price: e.target.value })}
-                      />
-                      <input
-                        type="text"
-                        className="input-field"
-                        placeholder={t('savingText')}
-                        value={pkgForm.save}
-                        onChange={(e) => setPkgForm({ ...pkgForm, save: e.target.value })}
-                      />
-                      <input
-                        type="text"
-                        className="input-field"
-                        placeholder={t('descText')}
-                        value={pkgForm.desc}
-                        onChange={(e) => setPkgForm({ ...pkgForm, desc: e.target.value })}
-                      />
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={pkgForm.highlight}
-                          onChange={(e) => setPkgForm({ ...pkgForm, highlight: e.target.checked })}
-                          className="rounded"
-                        />
-                        {t('showAsPopular')}
-                      </label>
-                      <div className="flex gap-2 ml-auto">
-                        <button onClick={handleSavePackage} className="btn-primary px-4 py-2.5 flex items-center gap-1.5 text-sm">
-                          {editingPkgId ? <Pencil size={14} /> : <Plus size={14} />}
-                          {editingPkgId ? t('save') : t('addPkgBtn')}
-                        </button>
-                        {editingPkgId && (
-                          <button onClick={() => { setEditingPkgId(null); setPkgForm({ name: '', hours: 1, price: 0, machineType: 'trackman', highlight: false, save: '', desc: '' }); }} className="btn-ghost px-3 py-2.5 text-sm">
-                            {t('cancel')}
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-end">
+                    <button onClick={() => { setEditingPkgId(null); setPkgForm({ name: '', hours: 1, price: 0, machineType: 'trackman', highlight: false, save: '', desc: '' }); setShowPkgFormModal(true); }} className="btn-primary px-4 py-2 flex items-center gap-1.5 text-sm">
+                      <Plus size={15} /> {t('addPkg')}
+                    </button>
                   </div>
-
-                  {/* Package List */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
                     {packages.map((pkg) => (
                       <div key={pkg.id} className={`flex items-center justify-between p-4 rounded-xl ring-1 transition-all ${pkg.active !== false ? 'bg-white ring-gray-200' : 'bg-gray-50 ring-gray-100 opacity-60'}`}>
                         <div className="flex items-center gap-3">
@@ -4133,7 +3952,7 @@ export default function App() {
                           <button onClick={() => handleTogglePackage(pkg.id)} className={`p-2 rounded-lg transition-colors ${pkg.active !== false ? 'text-emerald-500 hover:bg-emerald-50' : 'text-gray-400 hover:bg-gray-100'}`}>
                             {pkg.active !== false ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
                           </button>
-                          <button onClick={() => handleEditPackage(pkg)} className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
+                          <button onClick={() => { handleEditPackage(pkg); setShowPkgFormModal(true); }} className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
                             <Pencil size={16} />
                           </button>
                           <button onClick={() => handleDeletePackage(pkg.id)} className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
@@ -4149,61 +3968,13 @@ export default function App() {
 
               {/* ========== PROMOS TAB ========== */}
               {adminTab === 'promos' && (
-                <div className="space-y-4">
-                  {/* Add/Edit Promo Form */}
-                  <div className="bg-gray-50 rounded-xl p-4 ring-1 ring-gray-100">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                      <Plus size={15} /> {editingPromoId ? t('editPromo') : t('addPromo')}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                      <input
-                        type="text"
-                        className="input-field uppercase"
-                        placeholder={t('promoCodePH')}
-                        value={promoForm.code}
-                        onChange={(e) => setPromoForm({ ...promoForm, code: e.target.value })}
-                      />
-                      <select
-                        className="input-field"
-                        value={promoForm.type}
-                        onChange={(e) => setPromoForm({ ...promoForm, type: e.target.value })}
-                      >
-                        <option value="percent">{t('discountPercent')}</option>
-                        <option value="fixed">{t('discountFixed')}</option>
-                      </select>
-                      <input
-                        type="number"
-                        className="input-field"
-                        placeholder={promoForm.type === 'percent' ? t('discountPercentPH') : t('discountFixedPH')}
-                        value={promoForm.value}
-                        onChange={(e) => setPromoForm({ ...promoForm, value: e.target.value })}
-                      />
-                      <input
-                        type="date"
-                        className="input-field"
-                        value={promoForm.expiryDate}
-                        onChange={(e) => setPromoForm({ ...promoForm, expiryDate: e.target.value })}
-                        title={t('expiryDate')}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 mt-3">
-                      <span className="text-xs text-gray-400">{t('expiryDate')}</span>
-                      <div className="flex gap-2 ml-auto">
-                        <button onClick={handleSavePromo} className="btn-primary px-4 py-2.5 flex items-center gap-1.5 text-sm">
-                          {editingPromoId ? <Pencil size={14} /> : <Plus size={14} />}
-                          {editingPromoId ? t('save') : t('addPromoBtn')}
-                        </button>
-                        {editingPromoId && (
-                          <button onClick={() => { setEditingPromoId(null); setPromoForm({ code: '', type: 'percent', value: 0, expiryDate: '' }); }} className="btn-ghost px-3 py-2.5 text-sm">
-                            {t('cancel')}
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-end">
+                    <button onClick={() => { setEditingPromoId(null); setPromoForm({ code: '', type: 'percent', value: 0, expiryDate: '' }); setShowPromoFormModal(true); }} className="btn-primary px-4 py-2 flex items-center gap-1.5 text-sm">
+                      <Plus size={15} /> {t('addPromo')}
+                    </button>
                   </div>
-
-                  {/* Promo List */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
                     {promoCodes.map((promo) => (
                       <div key={promo.id} className={`flex items-center justify-between p-4 rounded-xl ring-1 transition-all ${promo.active ? 'bg-white ring-gray-200' : 'bg-gray-50 ring-gray-100 opacity-60'}`}>
                         <div className="flex items-center gap-3">
@@ -4231,7 +4002,7 @@ export default function App() {
                           <button onClick={() => handleTogglePromo(promo.id)} className={`p-2 rounded-lg transition-colors ${promo.active ? 'text-emerald-500 hover:bg-emerald-50' : 'text-gray-400 hover:bg-gray-100'}`}>
                             {promo.active ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
                           </button>
-                          <button onClick={() => handleEditPromo(promo)} className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
+                          <button onClick={() => { handleEditPromo(promo); setShowPromoFormModal(true); }} className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
                             <Pencil size={16} />
                           </button>
                           <button onClick={() => handleDeletePromo(promo.id)} className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
@@ -4248,16 +4019,17 @@ export default function App() {
               {/* ========== USERS TAB ========== */}
               {adminTab === 'users' && (
                 <div className="space-y-3">
-                  {/* Search */}
-                  <div className="relative">
-                    <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      className="input-field pl-10"
-                      placeholder={t('searchUserPlaceholder') || 'ค้นหาชื่อ หรือเบอร์โทร...'}
-                      value={userSearch}
-                      onChange={(e) => setUserSearch(e.target.value)}
-                    />
+                  <div className="flex items-center justify-end">
+                    <div className="relative w-64">
+                      <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="text"
+                        className="input-field pl-9 py-2 text-sm"
+                        placeholder={t('searchUserPlaceholder') || 'ค้นหาชื่อ หรือเบอร์โทร...'}
+                        value={userSearch}
+                        onChange={(e) => setUserSearch(e.target.value)}
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
                   {appUsers.filter(u => u.id !== currentUser?.id).filter(u => {
@@ -5067,6 +4839,113 @@ export default function App() {
               <button onClick={() => setViewingCoach(null)} className="mt-6 w-full py-2.5 btn-ghost text-sm">
                 {t('close')}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========== Bay Form Modal ========== */}
+      {showBayFormModal && (
+        <div className="modal-overlay" onClick={() => setShowBayFormModal(false)}>
+          <div className="modal-panel max-w-md p-6 modal-enter max-h-[90vh] overflow-y-auto custom-scrollbar" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-lg font-semibold text-gray-900">{editingBayId ? t('editBay') : t('addBay')}</h3>
+              <button onClick={() => setShowBayFormModal(false)} className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-xl"><X size={20} /></button>
+            </div>
+            <div className="space-y-3">
+              <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('bayNamePlaceholder')}</label><input type="text" className="input-field" value={bayForm.name} onChange={(e) => setBayForm({ ...bayForm, name: e.target.value })} autoFocus /></div>
+              <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('machineType') || 'ประเภทเครื่อง'}</label><select className="input-field" value={bayForm.type || ''} onChange={(e) => setBayForm({ ...bayForm, type: e.target.value || null })}><option value="">{t('noType')}</option><option value="trackman">Trackman</option><option value="foresight">Foresight</option></select></div>
+              <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('pricePerHour')}</label><input type="number" className="input-field" value={bayForm.price} onChange={(e) => setBayForm({ ...bayForm, price: e.target.value })} /></div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setShowBayFormModal(false)} className="flex-1 py-3 btn-secondary">{t('cancel')}</button>
+              <button onClick={() => { handleSaveBay(); setShowBayFormModal(false); }} className="flex-1 py-3 btn-primary">{editingBayId ? t('save') : t('add')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========== Coach Form Modal ========== */}
+      {showCoachFormModal && (
+        <div className="modal-overlay" onClick={() => setShowCoachFormModal(false)}>
+          <div className="modal-panel max-w-md p-6 modal-enter max-h-[90vh] overflow-y-auto custom-scrollbar" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-lg font-semibold text-gray-900">{editingCoachId ? t('editCoach') : t('addCoach')}</h3>
+              <button onClick={() => setShowCoachFormModal(false)} className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-xl"><X size={20} /></button>
+            </div>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('coachNamePH')}</label><input type="text" className="input-field" value={coachForm.name} onChange={(e) => setCoachForm({ ...coachForm, name: e.target.value })} autoFocus /></div>
+                <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('pricePerHourBaht')}</label><input type="number" className="input-field" value={coachForm.price} onChange={(e) => setCoachForm({ ...coachForm, price: e.target.value })} /></div>
+              </div>
+              {!editingCoachId && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('coachPhone')}</label><input type="tel" className="input-field" value={coachForm.phone} onChange={(e) => setCoachForm({ ...coachForm, phone: e.target.value })} /></div>
+                  <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('coachPassword')}</label><input type="text" className="input-field" value={coachForm.password} onChange={(e) => setCoachForm({ ...coachForm, password: e.target.value })} /></div>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('educationPH')}</label><input type="text" className="input-field" value={coachForm.education} onChange={(e) => setCoachForm({ ...coachForm, education: e.target.value })} /></div>
+                <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('expertisePH')}</label><input type="text" className="input-field" value={coachForm.expertise} onChange={(e) => setCoachForm({ ...coachForm, expertise: e.target.value })} /></div>
+              </div>
+              <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('bioPH')}</label><input type="text" className="input-field" value={coachForm.bio} onChange={(e) => setCoachForm({ ...coachForm, bio: e.target.value })} /></div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setShowCoachFormModal(false)} className="flex-1 py-3 btn-secondary">{t('cancel')}</button>
+              <button onClick={() => { handleSaveCoach(); setShowCoachFormModal(false); }} className="flex-1 py-3 btn-primary">{editingCoachId ? t('save') : t('addCoachBtn')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========== Package Form Modal ========== */}
+      {showPkgFormModal && (
+        <div className="modal-overlay" onClick={() => setShowPkgFormModal(false)}>
+          <div className="modal-panel max-w-md p-6 modal-enter max-h-[90vh] overflow-y-auto custom-scrollbar" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-lg font-semibold text-gray-900">{editingPkgId ? t('editPkg') : t('addPkg')}</h3>
+              <button onClick={() => setShowPkgFormModal(false)} className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-xl"><X size={20} /></button>
+            </div>
+            <div className="space-y-3">
+              <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('pkgNamePH')}</label><input type="text" className="input-field" value={pkgForm.name} onChange={(e) => setPkgForm({ ...pkgForm, name: e.target.value })} autoFocus /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('machineType') || 'ประเภท'}</label><select className="input-field" value={pkgForm.machineType} onChange={(e) => setPkgForm({ ...pkgForm, machineType: e.target.value })}><option value="trackman">Trackman</option><option value="foresight">Foresight</option></select></div>
+                <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('numHours')}</label><input type="number" className="input-field" value={pkgForm.hours} onChange={(e) => setPkgForm({ ...pkgForm, hours: e.target.value })} /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('priceBaht')}</label><input type="number" className="input-field" value={pkgForm.price} onChange={(e) => setPkgForm({ ...pkgForm, price: e.target.value })} /></div>
+                <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('savingText')}</label><input type="text" className="input-field" value={pkgForm.save} onChange={(e) => setPkgForm({ ...pkgForm, save: e.target.value })} /></div>
+              </div>
+              <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('descText')}</label><input type="text" className="input-field" value={pkgForm.desc} onChange={(e) => setPkgForm({ ...pkgForm, desc: e.target.value })} /></div>
+              <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"><input type="checkbox" checked={pkgForm.highlight} onChange={(e) => setPkgForm({ ...pkgForm, highlight: e.target.checked })} className="rounded accent-[#FF7A05]" /> {t('showAsPopular')}</label>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setShowPkgFormModal(false)} className="flex-1 py-3 btn-secondary">{t('cancel')}</button>
+              <button onClick={() => { handleSavePackage(); setShowPkgFormModal(false); }} className="flex-1 py-3 btn-primary">{editingPkgId ? t('save') : t('addPkgBtn')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========== Promo Form Modal ========== */}
+      {showPromoFormModal && (
+        <div className="modal-overlay" onClick={() => setShowPromoFormModal(false)}>
+          <div className="modal-panel max-w-md p-6 modal-enter max-h-[90vh] overflow-y-auto custom-scrollbar" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-lg font-semibold text-gray-900">{editingPromoId ? t('editPromo') : t('addPromo')}</h3>
+              <button onClick={() => setShowPromoFormModal(false)} className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-xl"><X size={20} /></button>
+            </div>
+            <div className="space-y-3">
+              <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('promoCodePH')}</label><input type="text" className="input-field uppercase" value={promoForm.code} onChange={(e) => setPromoForm({ ...promoForm, code: e.target.value })} autoFocus /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('discountType') || 'ประเภทส่วนลด'}</label><select className="input-field" value={promoForm.type} onChange={(e) => setPromoForm({ ...promoForm, type: e.target.value })}><option value="percent">{t('discountPercent')}</option><option value="fixed">{t('discountFixed')}</option></select></div>
+                <div><label className="text-sm font-medium text-gray-600 mb-1 block">{promoForm.type === 'percent' ? t('discountPercentPH') : t('discountFixedPH')}</label><input type="number" className="input-field" value={promoForm.value} onChange={(e) => setPromoForm({ ...promoForm, value: e.target.value })} /></div>
+              </div>
+              <div><label className="text-sm font-medium text-gray-600 mb-1 block">{t('expiryDate')}</label><input type="date" className="input-field" value={promoForm.expiryDate} onChange={(e) => setPromoForm({ ...promoForm, expiryDate: e.target.value })} /></div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setShowPromoFormModal(false)} className="flex-1 py-3 btn-secondary">{t('cancel')}</button>
+              <button onClick={() => { handleSavePromo(); setShowPromoFormModal(false); }} className="flex-1 py-3 btn-primary">{editingPromoId ? t('save') : t('addPromoBtn')}</button>
             </div>
           </div>
         </div>
