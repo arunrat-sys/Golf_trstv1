@@ -6,7 +6,8 @@ import {
   CheckCircle2, XCircle, Tag, Users, CreditCard, Award, ShoppingCart,
   FileText, Filter, TrendingUp, LogOut, LogIn, UserPlus, Eye, EyeOff, Lock,
   Settings, Plus, Trash2, Pencil, Percent, ToggleLeft, ToggleRight,
-  Camera, ImagePlus, Star, Briefcase, BookOpen, ChevronDown, Info
+  Camera, ImagePlus, Star, Briefcase, BookOpen, ChevronDown, Info,
+  Paperclip, Globe
 } from 'lucide-react';
 
 const START_HOUR = 9;
@@ -15,331 +16,368 @@ const DAYS_OF_WEEK_MAP = {
   th: ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'],
   en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
   ja: ['日', '月', '火', '水', '木', '金', '土'],
+  ru: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+  zh: ['日', '一', '二', '三', '四', '五', '六'],
 };
-const LOCALE_MAP = { th: 'th-TH', en: 'en-US', ja: 'ja-JP' };
+const LOCALE_MAP = { th: 'th-TH', en: 'en-US', ja: 'ja-JP', ru: 'ru-RU', zh: 'zh-CN' };
 
 const TRANSLATIONS = {
   // ---- Auth page ----
-  systemSubtitle: { th: 'ระบบจองสนามกอล์ฟจำลอง', en: 'Golf Simulator Booking System', ja: 'ゴルフシミュレーター予約システム' },
-  login: { th: 'เข้าสู่ระบบ', en: 'Login', ja: 'ログイン' },
-  register: { th: 'ลงทะเบียน', en: 'Register', ja: '新規登録' },
-  phone: { th: 'เบอร์โทรศัพท์', en: 'Phone Number', ja: '電話番号' },
-  password: { th: 'รหัสผ่าน', en: 'Password', ja: 'パスワード' },
-  enterPassword: { th: 'กรอกรหัสผ่าน', en: 'Enter password', ja: 'パスワードを入力' },
-  fullName: { th: 'ชื่อ-นามสกุล', en: 'Full Name', ja: '氏名' },
-  enterFullName: { th: 'กรอกชื่อ-นามสกุล', en: 'Enter full name', ja: '氏名を入力' },
-  setPassword: { th: 'ตั้งรหัสผ่าน (อย่างน้อย 4 ตัว)', en: 'Set password (min 4 chars)', ja: 'パスワード設定（4文字以上）' },
-  accountType: { th: 'ประเภทบัญชี', en: 'Account Type', ja: 'アカウント種別' },
-  customer: { th: 'ลูกค้า', en: 'Customer', ja: 'お客様' },
-  coach: { th: 'โค้ช', en: 'Coach', ja: 'コーチ' },
-  admin: { th: 'แอดมิน', en: 'Admin', ja: '管理者' },
-  coachNameLabel: { th: 'ชื่อโค้ช (แสดงในระบบ)', en: 'Coach Name (displayed in system)', ja: 'コーチ名（システム表示用）' },
-  coachNamePlaceholder: { th: 'เช่น โค้ชดี', en: 'e.g. Coach D', ja: '例：コーチD' },
-  demoAccounts: { th: 'บัญชีทดลองใช้ (รหัสผ่าน: 1234)', en: 'Demo accounts (password: 1234)', ja: 'デモアカウント（パスワード：1234）' },
-  customerLabel: { th: 'ลูกค้า', en: 'Customer', ja: 'お客様' },
+  systemSubtitle: { th: 'ระบบจองสนามกอล์ฟจำลอง', en: 'Golf Simulator Booking System', ja: 'ゴルフシミュレーター予約システム', ru: 'Система бронирования гольф-симулятора', zh: '高尔夫模拟器预订系统' },
+  login: { th: 'เข้าสู่ระบบ', en: 'Login', ja: 'ログイン', ru: 'Войти', zh: '登录' },
+  register: { th: 'ลงทะเบียน', en: 'Register', ja: '新規登録', ru: 'Регистрация', zh: '注册' },
+  phone: { th: 'เบอร์โทรศัพท์', en: 'Phone Number', ja: '電話番号', ru: 'Телефон', zh: '手机号' },
+  password: { th: 'รหัสผ่าน', en: 'Password', ja: 'パスワード', ru: 'Пароль', zh: '密码' },
+  enterPassword: { th: 'กรอกรหัสผ่าน', en: 'Enter password', ja: 'パスワードを入力', ru: 'Введите пароль', zh: '输入密码' },
+  fullName: { th: 'ชื่อ-นามสกุล', en: 'Full Name', ja: '氏名', ru: 'Полное имя', zh: '姓名' },
+  enterFullName: { th: 'กรอกชื่อ-นามสกุล', en: 'Enter full name', ja: '氏名を入力', ru: 'Введите полное имя', zh: '输入姓名' },
+  setPassword: { th: 'ตั้งรหัสผ่าน (อย่างน้อย 4 ตัว)', en: 'Set password (min 4 chars)', ja: 'パスワード設定（4文字以上）', ru: 'Пароль (мин. 4 символа)', zh: '设置密码（至少4位）' },
+  accountType: { th: 'ประเภทบัญชี', en: 'Account Type', ja: 'アカウント種別', ru: 'Тип аккаунта', zh: '账户类型' },
+  customer: { th: 'ลูกค้า', en: 'Customer', ja: 'お客様', ru: 'Клиент', zh: '客户' },
+  coach: { th: 'โค้ช', en: 'Coach', ja: 'コーチ', ru: 'Тренер', zh: '教练' },
+  admin: { th: 'แอดมิน', en: 'Admin', ja: '管理者', ru: 'Админ', zh: '管理员' },
+  coachNameLabel: { th: 'ชื่อโค้ช (แสดงในระบบ)', en: 'Coach Name (displayed in system)', ja: 'コーチ名（システム表示用）', ru: 'Имя тренера (в системе)', zh: '教练姓名（系统显示）' },
+  coachNamePlaceholder: { th: 'เช่น โค้ชดี', en: 'e.g. Coach D', ja: '例：コーチD', ru: 'напр. Тренер Д', zh: '例如 教练D' },
+  demoAccounts: { th: 'บัญชีทดลองใช้ (รหัสผ่าน: 1234)', en: 'Demo accounts (password: 1234)', ja: 'デモアカウント（パスワード：1234）', ru: 'Демо-аккаунты (пароль: 1234)', zh: '演示账户（密码：1234）' },
+  customerLabel: { th: 'ลูกค้า', en: 'Customer', ja: 'お客様', ru: 'Клиент', zh: '客户' },
 
   // ---- Auth errors ----
-  errPhoneOrPassword: { th: 'เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง', en: 'Incorrect phone or password', ja: '電話番号またはパスワードが正しくありません' },
-  errFillAll: { th: 'กรุณากรอกข้อมูลให้ครบ', en: 'Please fill in all fields', ja: 'すべての項目を入力してください' },
-  errPasswordMin: { th: 'รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร', en: 'Password must be at least 4 characters', ja: 'パスワードは4文字以上必要です' },
-  errPhoneUsed: { th: 'เบอร์โทรนี้ถูกใช้ลงทะเบียนแล้ว', en: 'This phone is already registered', ja: 'この電話番号は既に登録されています' },
-  errEnterCoachName: { th: 'กรุณากรอกชื่อโค้ช', en: 'Please enter coach name', ja: 'コーチ名を入力してください' },
+  errPhoneOrPassword: { th: 'เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง', en: 'Incorrect phone or password', ja: '電話番号またはパスワードが正しくありません', ru: 'Неверный телефон или пароль', zh: '手机号或密码错误' },
+  errFillAll: { th: 'กรุณากรอกข้อมูลให้ครบ', en: 'Please fill in all fields', ja: 'すべての項目を入力してください', ru: 'Заполните все поля', zh: '请填写所有字段' },
+  errPasswordMin: { th: 'รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร', en: 'Password must be at least 4 characters', ja: 'パスワードは4文字以上必要です', ru: 'Пароль минимум 4 символа', zh: '密码至少4个字符' },
+  errPhoneUsed: { th: 'เบอร์โทรนี้ถูกใช้ลงทะเบียนแล้ว', en: 'This phone is already registered', ja: 'この電話番号は既に登録されています', ru: 'Этот номер уже зарегистрирован', zh: '该手机号已注册' },
+  errEnterCoachName: { th: 'กรุณากรอกชื่อโค้ช', en: 'Please enter coach name', ja: 'コーチ名を入力してください', ru: 'Введите имя тренера', zh: '请输入教练姓名' },
 
   // ---- Top bar / Nav ----
-  logout: { th: 'ออกจากระบบ', en: 'Logout', ja: 'ログアウト' },
-  hello: { th: 'สวัสดี,', en: 'Hello,', ja: 'こんにちは,' },
-  daily: { th: 'รายวัน', en: 'Daily', ja: '日別' },
-  calendar: { th: 'ปฏิทิน', en: 'Calendar', ja: 'カレンダー' },
-  membersAndCourses: { th: 'สมาชิก/คอร์ส', en: 'Members/Courses', ja: '会員/コース' },
-  coachSchedule: { th: 'ตารางสอน', en: 'Schedule', ja: 'スケジュール' },
-  dashboard: { th: 'แดชบอร์ด', en: 'Dashboard', ja: 'ダッシュボード' },
-  reports: { th: 'รายงาน', en: 'Reports', ja: 'レポート' },
-  settings: { th: 'ตั้งค่า', en: 'Settings', ja: '設定' },
+  logout: { th: 'ออกจากระบบ', en: 'Logout', ja: 'ログアウト', ru: 'Выйти', zh: '退出' },
+  hello: { th: 'สวัสดี,', en: 'Hello,', ja: 'こんにちは,', ru: 'Привет,', zh: '你好,' },
+  daily: { th: 'รายวัน', en: 'Daily', ja: '日別', ru: 'День', zh: '每日' },
+  calendar: { th: 'ปฏิทิน', en: 'Calendar', ja: 'カレンダー', ru: 'Календарь', zh: '日历' },
+  membersAndCourses: { th: 'สมาชิก/คอร์ส', en: 'Members/Courses', ja: '会員/コース', ru: 'Члены/Курсы', zh: '会员/课程' },
+  coachSchedule: { th: 'ตารางสอน', en: 'Schedule', ja: 'スケジュール', ru: 'Расписание', zh: '课程表' },
+  dashboard: { th: 'แดชบอร์ด', en: 'Dashboard', ja: 'ダッシュボード', ru: 'Панель', zh: '仪表板' },
+  reports: { th: 'รายงาน', en: 'Reports', ja: 'レポート', ru: 'Отчёты', zh: '报表' },
+  settings: { th: 'ตั้งค่า', en: 'Settings', ja: '設定', ru: 'Настройки', zh: '设置' },
 
   // ---- Daily view ----
-  prevDay: { th: 'วันก่อนหน้า', en: 'Previous Day', ja: '前日' },
-  nextDay: { th: 'วันถัดไป', en: 'Next Day', ja: '翌日' },
-  time: { th: 'เวลา', en: 'Time', ja: '時間' },
-  available: { th: 'ว่าง', en: 'Open', ja: '空き' },
-  book: { th: '+ จอง', en: '+ Book', ja: '+ 予約' },
-  booked: { th: 'ถูกจองแล้ว', en: 'Booked', ja: '予約済み' },
-  myBooking: { th: 'จองเรียบร้อยแล้ว', en: 'Your Booking', ja: '予約済み（自分）' },
-  notAvailable: { th: 'ไม่ว่าง', en: 'Unavailable', ja: '空きなし' },
-  statusBooked: { th: 'รอโชว์ตัว', en: 'Awaiting', ja: '来店待ち' },
-  statusCheckedIn: { th: 'เช็คอินแล้ว', en: 'Checked In', ja: 'チェックイン済' },
-  statusNoShow: { th: 'ไม่มา', en: 'No-show', ja: '不参加' },
-  hasCoach: { th: 'มีโค้ช', en: 'With Coach', ja: 'コーチ付き' },
+  prevDay: { th: 'วันก่อนหน้า', en: 'Previous Day', ja: '前日', ru: 'Пред. день', zh: '前一天' },
+  nextDay: { th: 'วันถัดไป', en: 'Next Day', ja: '翌日', ru: 'След. день', zh: '后一天' },
+  time: { th: 'เวลา', en: 'Time', ja: '時間', ru: 'Время', zh: '时间' },
+  available: { th: 'ว่าง', en: 'Open', ja: '空き', ru: 'Свободно', zh: '空闲' },
+  book: { th: '+ จอง', en: '+ Book', ja: '+ 予約', ru: '+ Забронировать', zh: '+ 预订' },
+  booked: { th: 'ถูกจองแล้ว', en: 'Booked', ja: '予約済み', ru: 'Забронировано', zh: '已预订' },
+  myBooking: { th: 'จองเรียบร้อยแล้ว', en: 'Your Booking', ja: '予約済み（自分）', ru: 'Ваше бронирование', zh: '您的预订' },
+  notAvailable: { th: 'ไม่ว่าง', en: 'Unavailable', ja: '空きなし', ru: 'Недоступно', zh: '不可用' },
+  statusBooked: { th: 'รอโชว์ตัว', en: 'Awaiting', ja: '来店待ち', ru: 'Ожидание', zh: '等待到场' },
+  statusCheckedIn: { th: 'เช็คอินแล้ว', en: 'Checked In', ja: 'チェックイン済', ru: 'Отмечен', zh: '已签到' },
+  statusNoShow: { th: 'ไม่มา', en: 'No-show', ja: '不参加', ru: 'Не пришёл', zh: '未到场' },
+  hasCoach: { th: 'มีโค้ช', en: 'With Coach', ja: 'コーチ付き', ru: 'С тренером', zh: '有教练' },
 
   // ---- Members / Packages view ----
-  trackmanCourses: { th: 'คอร์สเรียน Trackman', en: 'Trackman Courses', ja: 'Trackmanコース' },
-  foresightCourses: { th: 'คอร์สเรียน Foresight', en: 'Foresight Courses', ja: 'Foresightコース' },
-  popular: { th: 'ยอดนิยม', en: 'Popular', ja: '人気' },
-  courseHours: { th: 'คอร์สเรียน', en: 'Course', ja: 'コース' },
-  hours: { th: 'ชั่วโมง', en: 'hours', ja: '時間' },
-  coachIncluded: { th: 'รวมค่าโค้ชสอนแล้ว', en: 'Coach fee included', ja: 'コーチ料込み' },
-  useForTrackman: { th: 'ใช้จองเครื่อง Trackman', en: 'For Trackman machines', ja: 'Trackmanマシン用' },
-  useForForesight: { th: 'ใช้จองเครื่อง Foresight', en: 'For Foresight machines', ja: 'Foresightマシン用' },
-  buyPackage: { th: 'เลือกซื้อแพ็กเกจนี้', en: 'Buy This Package', ja: 'このパッケージを購入' },
-  myCourses: { th: 'คอร์สของฉัน', en: 'My Courses', ja: 'マイコース' },
-  hoursRemaining: { th: 'ชม. คงเหลือ', en: 'hrs remaining', ja: '時間 残り' },
-  hoursUnit: { th: 'ชม.', en: 'hrs', ja: '時間' },
-  hoursUsedUp: { th: 'หมดแล้ว — เลือกซื้อแพ็คเกจด้านบนเพื่อเติม', en: 'Used up — buy a package above to refill', ja: '残りなし — 上記パッケージを購入してください' },
-  noCourses: { th: 'คุณยังไม่มีคอร์ส — เลือกซื้อแพ็คเกจด้านบนเพื่อเริ่มต้น', en: 'No courses yet — buy a package above to get started', ja: 'コースがありません — 上記パッケージを購入してください' },
-  memberListTitle: { th: 'รายชื่อสมาชิกในระบบ', en: 'Member List', ja: '会員一覧' },
-  customerName: { th: 'ชื่อลูกค้า', en: 'Customer Name', ja: 'お客様名' },
-  contactPhone: { th: 'เบอร์ติดต่อ', en: 'Phone', ja: '連絡先' },
-  lineEmail: { th: 'Line / Email', en: 'Line / Email', ja: 'Line / Email' },
-  trackmanRemBought: { th: 'Trackman (คงเหลือ/ซื้อ)', en: 'Trackman (Remaining/Bought)', ja: 'Trackman (残り/購入)' },
-  foresightRemBought: { th: 'Foresight (คงเหลือ/ซื้อ)', en: 'Foresight (Remaining/Bought)', ja: 'Foresight (残り/購入)' },
-  noMembers: { th: 'ยังไม่มีข้อมูลสมาชิก', en: 'No member data yet', ja: '会員データがありません' },
-  hrsUnit: { th: 'ชม.', en: 'hrs', ja: '時間' },
+  trackmanCourses: { th: 'คอร์สเรียน Trackman', en: 'Trackman Courses', ja: 'Trackmanコース', ru: 'Курсы Trackman', zh: 'Trackman课程' },
+  foresightCourses: { th: 'คอร์สเรียน Foresight', en: 'Foresight Courses', ja: 'Foresightコース', ru: 'Курсы Foresight', zh: 'Foresight课程' },
+  popular: { th: 'ยอดนิยม', en: 'Popular', ja: '人気', ru: 'Популярный', zh: '热门' },
+  courseHours: { th: 'คอร์สเรียน', en: 'Course', ja: 'コース', ru: 'Курс', zh: '课程' },
+  hours: { th: 'ชั่วโมง', en: 'hours', ja: '時間', ru: 'часов', zh: '小时' },
+  coachIncluded: { th: 'รวมค่าโค้ชสอนแล้ว', en: 'Coach fee included', ja: 'コーチ料込み', ru: 'Тренер включён', zh: '含教练费' },
+  useForTrackman: { th: 'ใช้จองเครื่อง Trackman', en: 'For Trackman machines', ja: 'Trackmanマシン用', ru: 'Для Trackman', zh: '用于Trackman设备' },
+  useForForesight: { th: 'ใช้จองเครื่อง Foresight', en: 'For Foresight machines', ja: 'Foresightマシン用', ru: 'Для Foresight', zh: '用于Foresight设备' },
+  buyPackage: { th: 'เลือกซื้อแพ็กเกจนี้', en: 'Buy This Package', ja: 'このパッケージを購入', ru: 'Купить пакет', zh: '购买此套餐' },
+  myCourses: { th: 'คอร์สของฉัน', en: 'My Courses', ja: 'マイコース', ru: 'Мои курсы', zh: '我的课程' },
+  hoursRemaining: { th: 'ชม. คงเหลือ', en: 'hrs remaining', ja: '時間 残り', ru: 'ч. осталось', zh: '小时剩余' },
+  hoursUnit: { th: 'ชม.', en: 'hrs', ja: '時間', ru: 'ч.', zh: '小时' },
+  hoursUsedUp: { th: 'หมดแล้ว — เลือกซื้อแพ็คเกจด้านบนเพื่อเติม', en: 'Used up — buy a package above to refill', ja: '残りなし — 上記パッケージを購入してください', ru: 'Использовано — купите пакет выше', zh: '已用完 - 请购买上方套餐补充' },
+  noCourses: { th: 'คุณยังไม่มีคอร์ส — เลือกซื้อแพ็คเกจด้านบนเพื่อเริ่มต้น', en: 'No courses yet — buy a package above to get started', ja: 'コースがありません — 上記パッケージを購入してください', ru: 'Нет курсов — купите пакет выше', zh: '暂无课程 - 请购买上方套餐开始' },
+  memberListTitle: { th: 'รายชื่อสมาชิกในระบบ', en: 'Member List', ja: '会員一覧', ru: 'Список членов', zh: '会员列表' },
+  customerName: { th: 'ชื่อลูกค้า', en: 'Customer Name', ja: 'お客様名', ru: 'Имя клиента', zh: '客户姓名' },
+  contactPhone: { th: 'เบอร์ติดต่อ', en: 'Phone', ja: '連絡先', ru: 'Телефон', zh: '联系电话' },
+  lineEmail: { th: 'Line / Email', en: 'Line / Email', ja: 'Line / Email', ru: 'Line / Email', zh: 'Line / Email' },
+  trackmanRemBought: { th: 'Trackman (คงเหลือ/ซื้อ)', en: 'Trackman (Remaining/Bought)', ja: 'Trackman (残り/購入)', ru: 'Trackman (Ост./Куплено)', zh: 'Trackman（剩余/购买）' },
+  foresightRemBought: { th: 'Foresight (คงเหลือ/ซื้อ)', en: 'Foresight (Remaining/Bought)', ja: 'Foresight (残り/購入)', ru: 'Foresight (Ост./Куплено)', zh: 'Foresight（剩余/购买）' },
+  noMembers: { th: 'ยังไม่มีข้อมูลสมาชิก', en: 'No member data yet', ja: '会員データがありません', ru: 'Нет данных о членах', zh: '暂无会员数据' },
+  hrsUnit: { th: 'ชม.', en: 'hrs', ja: '時間', ru: 'ч.', zh: '小时' },
 
   // ---- Dashboard ----
-  dashboardTitle: { th: 'ภาพรวมระบบและรายงาน', en: 'System Overview & Reports', ja: 'システム概要とレポート' },
-  bookingsToday: { th: 'การจองวันนี้', en: "Today's Bookings", ja: '本日の予約' },
-  checkinToday: { th: 'มาแสดงตัว (เช็คอิน)', en: 'Checked In', ja: 'チェックイン' },
-  noShowToday: { th: 'ไม่มา (No-show)', en: 'No-show', ja: '不参加 (No-show)' },
-  expectedRevenue: { th: 'ยอดรับเงินคาดการณ์ (วันนี้)', en: 'Expected Revenue (Today)', ja: '予想収益（本日）' },
-  items: { th: 'รายการ', en: 'items', ja: '件' },
-  people: { th: 'คน', en: 'people', ja: '人' },
+  dashboardTitle: { th: 'ภาพรวมระบบและรายงาน', en: 'System Overview & Reports', ja: 'システム概要とレポート', ru: 'Обзор системы и отчёты', zh: '系统概览与报表' },
+  bookingsToday: { th: 'การจองวันนี้', en: "Today's Bookings", ja: '本日の予約', ru: 'Бронирования сегодня', zh: '今日预订' },
+  checkinToday: { th: 'มาแสดงตัว (เช็คอิน)', en: 'Checked In', ja: 'チェックイン', ru: 'Отмечено', zh: '已签到' },
+  noShowToday: { th: 'ไม่มา (No-show)', en: 'No-show', ja: '不参加 (No-show)', ru: 'Не пришёл', zh: '未到场' },
+  expectedRevenue: { th: 'ยอดรับเงินคาดการณ์ (วันนี้)', en: 'Expected Revenue (Today)', ja: '予想収益（本日）', ru: 'Ожид. доход (сегодня)', zh: '预期收入（今日）' },
+  items: { th: 'รายการ', en: 'items', ja: '件', ru: 'шт.', zh: '项' },
+  people: { th: 'คน', en: 'people', ja: '人', ru: 'чел.', zh: '人' },
 
   // ---- Coach Schedule ----
-  today: { th: 'วันนี้', en: 'Today', ja: '今日' },
-  nextAppointment: { th: 'นัดถัดไป', en: 'Next Appointment', ja: '次の予約' },
-  thisMonth: { th: 'เดือนนี้', en: 'This Month', ja: '今月' },
-  taughtAlready: { th: 'สอนแล้ว', en: 'Taught', ja: '指導済' },
-  sessions: { th: 'คาบ', en: 'sessions', ja: 'コマ' },
-  todaySchedule: { th: 'วันนี้', en: 'Today', ja: '今日' },
-  noSessionsToday: { th: 'ไม่มีคาบสอนวันนี้', en: 'No sessions today', ja: '本日のセッションなし' },
-  waitingCustomer: { th: 'รอลูกค้า', en: 'Awaiting', ja: '来店待ち' },
-  teachingHistory: { th: 'ประวัติการสอน', en: 'Teaching History', ja: '指導履歴' },
-  more: { th: 'อีก', en: 'more', ja: '他' },
-  detailForDate: { th: 'รายละเอียดวันที่', en: 'Details for', ja: '日付の詳細' },
+  today: { th: 'วันนี้', en: 'Today', ja: '今日', ru: 'Сегодня', zh: '今天' },
+  nextAppointment: { th: 'นัดถัดไป', en: 'Next Appointment', ja: '次の予約', ru: 'След. встреча', zh: '下一个预约' },
+  thisMonth: { th: 'เดือนนี้', en: 'This Month', ja: '今月', ru: 'Этот месяц', zh: '本月' },
+  taughtAlready: { th: 'สอนแล้ว', en: 'Taught', ja: '指導済', ru: 'Проведено', zh: '已教' },
+  sessions: { th: 'คาบ', en: 'sessions', ja: 'コマ', ru: 'сессий', zh: '节' },
+  todaySchedule: { th: 'วันนี้', en: 'Today', ja: '今日', ru: 'Сегодня', zh: '今天' },
+  noSessionsToday: { th: 'ไม่มีคาบสอนวันนี้', en: 'No sessions today', ja: '本日のセッションなし', ru: 'Нет занятий сегодня', zh: '今天没有课程' },
+  waitingCustomer: { th: 'รอลูกค้า', en: 'Awaiting', ja: '来店待ち', ru: 'Ожидание', zh: '等待客户' },
+  teachingHistory: { th: 'ประวัติการสอน', en: 'Teaching History', ja: '指導履歴', ru: 'История обучения', zh: '教学历史' },
+  more: { th: 'อีก', en: 'more', ja: '他', ru: 'ещё', zh: '更多' },
+  detailForDate: { th: 'รายละเอียดวันที่', en: 'Details for', ja: '日付の詳細', ru: 'Детали за', zh: '日期详情' },
 
   // ---- Reports ----
-  selectReportRange: { th: 'เลือกช่วงเวลารายงาน', en: 'Select Report Period', ja: 'レポート期間を選択' },
-  thisMonthBtn: { th: 'เดือนนี้', en: 'This Month', ja: '今月' },
-  lastMonthBtn: { th: 'เดือนก่อน', en: 'Last Month', ja: '先月' },
-  twoMonthsAgo: { th: '2 เดือนก่อน', en: '2 Months Ago', ja: '2ヶ月前' },
-  fromDate: { th: 'จากวันที่', en: 'From', ja: '開始日' },
-  toDate: { th: 'ถึงวันที่', en: 'To', ja: '終了日' },
-  totalBookings: { th: 'การจองทั้งหมด', en: 'Total Bookings', ja: '総予約数' },
-  checkedIn: { th: 'เช็คอินแล้ว', en: 'Checked In', ja: 'チェックイン済' },
-  noShowLabel: { th: 'ไม่มา (No-show)', en: 'No-show', ja: '不参加' },
-  totalRevenue: { th: 'รายได้รวม', en: 'Total Revenue', ja: '総収益' },
-  withCoach: { th: 'มีโค้ช', en: 'With Coach', ja: 'コーチ付き' },
-  memberQuotaUsed: { th: 'ใช้สิทธิ์สมาชิก', en: 'Member Quota Used', ja: '会員枠使用' },
-  summaryByBay: { th: 'สรุปตาม Bay', en: 'Summary by Bay', ja: 'ベイ別集計' },
-  bookingCount: { th: 'จำนวนจอง', en: 'Bookings', ja: '予約数' },
-  checkinCount: { th: 'เช็คอิน', en: 'Check-ins', ja: 'チェックイン' },
-  revenue: { th: 'รายได้', en: 'Revenue', ja: '収益' },
-  dailySummary: { th: 'สรุปรายวัน', en: 'Daily Summary', ja: '日別集計' },
-  date: { th: 'วันที่', en: 'Date', ja: '日付' },
-  noShowCol: { th: 'ไม่มา', en: 'No-show', ja: '不参加' },
-  grandTotal: { th: 'รวมทั้งหมด', en: 'Grand Total', ja: '合計' },
-  noDataForRange: { th: 'ไม่มีข้อมูลการจองในช่วงเวลาที่เลือก', en: 'No booking data for selected period', ja: '選択期間の予約データなし' },
-  allBookings: { th: 'รายการจองทั้งหมด', en: 'All Bookings', ja: '全予約一覧' },
-  timeCol: { th: 'เวลา', en: 'Time', ja: '時間' },
-  machine: { th: 'เครื่อง', en: 'Machine', ja: 'マシン' },
-  customerCol: { th: 'ลูกค้า', en: 'Customer', ja: 'お客様' },
-  statusCol: { th: 'สถานะ', en: 'Status', ja: 'ステータス' },
-  amount: { th: 'ยอด', en: 'Amount', ja: '金額' },
+  selectReportRange: { th: 'เลือกช่วงเวลารายงาน', en: 'Select Report Period', ja: 'レポート期間を選択', ru: 'Период отчёта', zh: '选择报表时段' },
+  thisMonthBtn: { th: 'เดือนนี้', en: 'This Month', ja: '今月', ru: 'Этот месяц', zh: '本月' },
+  lastMonthBtn: { th: 'เดือนก่อน', en: 'Last Month', ja: '先月', ru: 'Прошлый месяц', zh: '上月' },
+  twoMonthsAgo: { th: '2 เดือนก่อน', en: '2 Months Ago', ja: '2ヶ月前', ru: '2 месяца назад', zh: '两个月前' },
+  fromDate: { th: 'จากวันที่', en: 'From', ja: '開始日', ru: 'С', zh: '从' },
+  toDate: { th: 'ถึงวันที่', en: 'To', ja: '終了日', ru: 'По', zh: '到' },
+  totalBookings: { th: 'การจองทั้งหมด', en: 'Total Bookings', ja: '総予約数', ru: 'Всего броней', zh: '总预订数' },
+  checkedIn: { th: 'เช็คอินแล้ว', en: 'Checked In', ja: 'チェックイン済', ru: 'Отмечено', zh: '已签到' },
+  noShowLabel: { th: 'ไม่มา (No-show)', en: 'No-show', ja: '不参加', ru: 'Не пришёл', zh: '未到场' },
+  totalRevenue: { th: 'รายได้รวม', en: 'Total Revenue', ja: '総収益', ru: 'Общий доход', zh: '总收入' },
+  withCoach: { th: 'มีโค้ช', en: 'With Coach', ja: 'コーチ付き', ru: 'С тренером', zh: '有教练' },
+  memberQuotaUsed: { th: 'ใช้สิทธิ์สมาชิก', en: 'Member Quota Used', ja: '会員枠使用', ru: 'Использовано квот', zh: '会员额度已用' },
+  summaryByBay: { th: 'สรุปตาม Bay', en: 'Summary by Bay', ja: 'ベイ別集計', ru: 'По бейсам', zh: '按球道统计' },
+  bookingCount: { th: 'จำนวนจอง', en: 'Bookings', ja: '予約数', ru: 'Бронирования', zh: '预订数' },
+  checkinCount: { th: 'เช็คอิน', en: 'Check-ins', ja: 'チェックイン', ru: 'Отметки', zh: '签到数' },
+  revenue: { th: 'รายได้', en: 'Revenue', ja: '収益', ru: 'Доход', zh: '收入' },
+  dailySummary: { th: 'สรุปรายวัน', en: 'Daily Summary', ja: '日別集計', ru: 'По дням', zh: '每日汇总' },
+  date: { th: 'วันที่', en: 'Date', ja: '日付', ru: 'Дата', zh: '日期' },
+  noShowCol: { th: 'ไม่มา', en: 'No-show', ja: '不参加', ru: 'Не пришёл', zh: '未到' },
+  grandTotal: { th: 'รวมทั้งหมด', en: 'Grand Total', ja: '合計', ru: 'Итого', zh: '总计' },
+  noDataForRange: { th: 'ไม่มีข้อมูลการจองในช่วงเวลาที่เลือก', en: 'No booking data for selected period', ja: '選択期間の予約データなし', ru: 'Нет данных за период', zh: '所选时段无预订数据' },
+  allBookings: { th: 'รายการจองทั้งหมด', en: 'All Bookings', ja: '全予約一覧', ru: 'Все бронирования', zh: '所有预订' },
+  timeCol: { th: 'เวลา', en: 'Time', ja: '時間', ru: 'Время', zh: '时间' },
+  machine: { th: 'เครื่อง', en: 'Machine', ja: 'マシン', ru: 'Машина', zh: '设备' },
+  customerCol: { th: 'ลูกค้า', en: 'Customer', ja: 'お客様', ru: 'Клиент', zh: '客户' },
+  statusCol: { th: 'สถานะ', en: 'Status', ja: 'ステータス', ru: 'Статус', zh: '状态' },
+  amount: { th: 'ยอด', en: 'Amount', ja: '金額', ru: 'Сумма', zh: '金额' },
 
   // ---- Settings ----
-  systemSettings: { th: 'ตั้งค่าระบบ', en: 'System Settings', ja: 'システム設定' },
-  settingsDesc: { th: 'จัดการเบย์, แพ็คเกจ และโปรโมชั่น', en: 'Manage bays, packages & promotions', ja: 'ベイ、パッケージ、プロモーション管理' },
-  baysTab: { th: 'เบย์', en: 'Bays', ja: 'ベイ' },
-  coachesTab: { th: 'โค้ช', en: 'Coaches', ja: 'コーチ' },
-  packagesTab: { th: 'แพ็คเกจ', en: 'Packages', ja: 'パッケージ' },
-  promosTab: { th: 'โปรโมโค้ด', en: 'Promo Codes', ja: 'プロモコード' },
-  editBay: { th: 'แก้ไขเบย์', en: 'Edit Bay', ja: 'ベイ編集' },
-  addBay: { th: 'เพิ่มเบย์ใหม่', en: 'Add New Bay', ja: '新規ベイ追加' },
-  bayNamePlaceholder: { th: 'ชื่อเบย์ เช่น Bay 5 (Trackman)', en: 'Bay name e.g. Bay 5 (Trackman)', ja: 'ベイ名 例: Bay 5 (Trackman)' },
-  noType: { th: 'ไม่ระบุประเภท', en: 'No Type', ja: '種別なし' },
-  pricePerHour: { th: 'ราคา/ชม.', en: 'Price/hr', ja: '料金/時' },
-  save: { th: 'บันทึก', en: 'Save', ja: '保存' },
-  add: { th: 'เพิ่ม', en: 'Add', ja: '追加' },
-  cancel: { th: 'ยกเลิก', en: 'Cancel', ja: 'キャンセル' },
-  noBays: { th: 'ยังไม่มีเบย์', en: 'No bays yet', ja: 'ベイがありません' },
-  editCoach: { th: 'แก้ไขโค้ช', en: 'Edit Coach', ja: 'コーチ編集' },
-  addCoach: { th: 'เพิ่มโค้ชใหม่', en: 'Add New Coach', ja: '新規コーチ追加' },
-  coachPhone: { th: 'เบอร์โทร (ใช้ล็อกอิน)', en: 'Phone (for login)', ja: '電話番号（ログイン用）' },
-  coachPassword: { th: 'รหัสผ่าน', en: 'Password', ja: 'パスワード' },
-  coachAccountCreated: { th: 'สร้างบัญชีโค้ชเรียบร้อย', en: 'Coach account created', ja: 'コーチアカウント作成完了' },
-  coachNamePH: { th: 'ชื่อโค้ช เช่น โค้ชดี', en: 'Coach name e.g. Coach D', ja: 'コーチ名 例: コーチD' },
-  pricePerHourBaht: { th: 'ราคา/ชม. (บาท)', en: 'Price/hr (THB)', ja: '料金/時（バーツ）' },
-  educationPH: { th: 'วุฒิการศึกษา / ใบรับรอง เช่น PGA Teaching Professional', en: 'Education/Certification e.g. PGA Teaching Professional', ja: '学歴/資格 例: PGA Teaching Professional' },
-  expertisePH: { th: 'ความเชี่ยวชาญ เช่น Short Game, Putting', en: 'Expertise e.g. Short Game, Putting', ja: '専門分野 例: Short Game, Putting' },
-  bioPH: { th: 'ประวัติย่อ เช่น ประสบการณ์สอน 10 ปี', en: 'Bio e.g. 10 years teaching experience', ja: '略歴 例: 指導歴10年' },
-  addCoachBtn: { th: 'เพิ่มโค้ช', en: 'Add Coach', ja: 'コーチ追加' },
-  noCoaches: { th: 'ยังไม่มีโค้ช', en: 'No coaches yet', ja: 'コーチがいません' },
-  educationLabel: { th: 'วุฒิ:', en: 'Education:', ja: '学歴:' },
-  expertiseLabel: { th: 'เชี่ยวชาญ:', en: 'Expertise:', ja: '専門:' },
-  bioLabel: { th: 'ประวัติ:', en: 'Bio:', ja: '略歴:' },
-  editPkg: { th: 'แก้ไขแพ็คเกจ', en: 'Edit Package', ja: 'パッケージ編集' },
-  addPkg: { th: 'เพิ่มแพ็คเกจใหม่', en: 'Add New Package', ja: '新規パッケージ追加' },
-  pkgNamePH: { th: 'ชื่อแพ็คเกจ', en: 'Package name', ja: 'パッケージ名' },
-  numHours: { th: 'จำนวนชั่วโมง', en: 'Number of hours', ja: '時間数' },
-  priceBaht: { th: 'ราคา (บาท)', en: 'Price (THB)', ja: '料金（バーツ）' },
-  savingText: { th: 'ข้อความประหยัด เช่น ประหยัด 5,000 บาท', en: 'Saving text e.g. Save 5,000 THB', ja: '節約テキスト 例: 5,000バーツお得' },
-  descText: { th: 'รายละเอียด เช่น รวมค่าโค้ชแล้ว', en: 'Description e.g. Coach fee included', ja: '説明 例: コーチ料込み' },
-  showAsPopular: { th: 'แสดงเป็น "ยอดนิยม"', en: 'Show as "Popular"', ja: '「人気」として表示' },
-  addPkgBtn: { th: 'เพิ่มแพ็คเกจ', en: 'Add Package', ja: 'パッケージ追加' },
-  noPackages: { th: 'ยังไม่มีแพ็คเกจ', en: 'No packages yet', ja: 'パッケージがありません' },
-  editPromo: { th: 'แก้ไขโปรโมโค้ด', en: 'Edit Promo Code', ja: 'プロモコード編集' },
-  addPromo: { th: 'เพิ่มโปรโมโค้ดใหม่', en: 'Add New Promo Code', ja: '新規プロモコード追加' },
-  promoCodePH: { th: 'โค้ด เช่น SAVE20', en: 'Code e.g. SAVE20', ja: 'コード 例: SAVE20' },
-  discountPercent: { th: 'ลดเป็น % (เปอร์เซ็นต์)', en: 'Percent discount (%)', ja: '割引率（%）' },
-  discountFixed: { th: 'ลดเป็นจำนวนเงิน (บาท)', en: 'Fixed amount (THB)', ja: '定額割引（バーツ）' },
-  discountPercentPH: { th: 'ส่วนลด %', en: 'Discount %', ja: '割引 %' },
-  discountFixedPH: { th: 'ส่วนลด (บาท)', en: 'Discount (THB)', ja: '割引（バーツ）' },
-  expiryDate: { th: 'วันหมดอายุ (เว้นว่าง = ไม่มีกำหนด)', en: 'Expiry date (blank = no expiry)', ja: '有効期限（空欄=無期限）' },
-  addPromoBtn: { th: 'เพิ่มโปรโมโค้ด', en: 'Add Promo Code', ja: 'プロモコード追加' },
-  noPromos: { th: 'ยังไม่มีโปรโมโค้ด', en: 'No promo codes yet', ja: 'プロモコードがありません' },
-  expired: { th: 'หมดอายุ:', en: 'Expires:', ja: '有効期限:' },
-  alreadyExpired: { th: '(หมดอายุแล้ว)', en: '(Expired)', ja: '（期限切れ）' },
-  noExpiry: { th: 'ไม่มีวันหมดอายุ', en: 'No expiry', ja: '無期限' },
+  systemSettings: { th: 'ตั้งค่าระบบ', en: 'System Settings', ja: 'システム設定', ru: 'Настройки системы', zh: '系统设置' },
+  settingsDesc: { th: 'จัดการเบย์, แพ็คเกจ และโปรโมชั่น', en: 'Manage bays, packages & promotions', ja: 'ベイ、パッケージ、プロモーション管理', ru: 'Бейсы, пакеты и промо', zh: '管理球道、套餐和促销' },
+  baysTab: { th: 'เบย์', en: 'Bays', ja: 'ベイ', ru: 'Бейсы', zh: '球道' },
+  coachesTab: { th: 'โค้ช', en: 'Coaches', ja: 'コーチ', ru: 'Тренеры', zh: '教练' },
+  packagesTab: { th: 'แพ็คเกจ', en: 'Packages', ja: 'パッケージ', ru: 'Пакеты', zh: '套餐' },
+  promosTab: { th: 'โปรโมโค้ด', en: 'Promo Codes', ja: 'プロモコード', ru: 'Промокоды', zh: '优惠码' },
+  editBay: { th: 'แก้ไขเบย์', en: 'Edit Bay', ja: 'ベイ編集', ru: 'Редакт. бейс', zh: '编辑球道' },
+  addBay: { th: 'เพิ่มเบย์ใหม่', en: 'Add New Bay', ja: '新規ベイ追加', ru: 'Добавить бейс', zh: '添加新球道' },
+  bayNamePlaceholder: { th: 'ชื่อเบย์ เช่น Bay 5 (Trackman)', en: 'Bay name e.g. Bay 5 (Trackman)', ja: 'ベイ名 例: Bay 5 (Trackman)', ru: 'Название напр. Bay 5 (Trackman)', zh: '球道名 例如 Bay 5 (Trackman)' },
+  noType: { th: 'ไม่ระบุประเภท', en: 'No Type', ja: '種別なし', ru: 'Без типа', zh: '无类型' },
+  pricePerHour: { th: 'ราคา/ชม.', en: 'Price/hr', ja: '料金/時', ru: 'Цена/ч.', zh: '价格/小时' },
+  save: { th: 'บันทึก', en: 'Save', ja: '保存', ru: 'Сохранить', zh: '保存' },
+  add: { th: 'เพิ่ม', en: 'Add', ja: '追加', ru: 'Добавить', zh: '添加' },
+  cancel: { th: 'ยกเลิก', en: 'Cancel', ja: 'キャンセル', ru: 'Отмена', zh: '取消' },
+  noBays: { th: 'ยังไม่มีเบย์', en: 'No bays yet', ja: 'ベイがありません', ru: 'Нет бейсов', zh: '暂无球道' },
+  editCoach: { th: 'แก้ไขโค้ช', en: 'Edit Coach', ja: 'コーチ編集', ru: 'Редакт. тренера', zh: '编辑教练' },
+  addCoach: { th: 'เพิ่มโค้ชใหม่', en: 'Add New Coach', ja: '新規コーチ追加', ru: 'Добавить тренера', zh: '添加新教练' },
+  coachPhone: { th: 'เบอร์โทร (ใช้ล็อกอิน)', en: 'Phone (for login)', ja: '電話番号（ログイン用）', ru: 'Телефон (для входа)', zh: '手机号（用于登录）' },
+  coachPassword: { th: 'รหัสผ่าน', en: 'Password', ja: 'パスワード', ru: 'Пароль', zh: '密码' },
+  coachAccountCreated: { th: 'สร้างบัญชีโค้ชเรียบร้อย', en: 'Coach account created', ja: 'コーチアカウント作成完了', ru: 'Аккаунт тренера создан', zh: '教练账户已创建' },
+  coachNamePH: { th: 'ชื่อโค้ช เช่น โค้ชดี', en: 'Coach name e.g. Coach D', ja: 'コーチ名 例: コーチD', ru: 'Имя напр. Тренер Д', zh: '教练姓名 例如 教练D' },
+  pricePerHourBaht: { th: 'ราคา/ชม. (บาท)', en: 'Price/hr (THB)', ja: '料金/時（バーツ）', ru: 'Цена/ч. (бат)', zh: '价格/小时（泰铢）' },
+  educationPH: { th: 'วุฒิการศึกษา / ใบรับรอง เช่น PGA Teaching Professional', en: 'Education/Certification e.g. PGA Teaching Professional', ja: '学歴/資格 例: PGA Teaching Professional', ru: 'Образование напр. PGA Teaching Professional', zh: '学历/认证 例如 PGA Teaching Professional' },
+  expertisePH: { th: 'ความเชี่ยวชาญ เช่น Short Game, Putting', en: 'Expertise e.g. Short Game, Putting', ja: '専門分野 例: Short Game, Putting', ru: 'Специализация напр. Short Game, Putting', zh: '专长 例如 Short Game, Putting' },
+  bioPH: { th: 'ประวัติย่อ เช่น ประสบการณ์สอน 10 ปี', en: 'Bio e.g. 10 years teaching experience', ja: '略歴 例: 指導歴10年', ru: 'Биография напр. 10 лет опыта', zh: '简介 例如 10年教学经验' },
+  addCoachBtn: { th: 'เพิ่มโค้ช', en: 'Add Coach', ja: 'コーチ追加', ru: 'Добавить тренера', zh: '添加教练' },
+  noCoaches: { th: 'ยังไม่มีโค้ช', en: 'No coaches yet', ja: 'コーチがいません', ru: 'Нет тренеров', zh: '暂无教练' },
+  educationLabel: { th: 'วุฒิ:', en: 'Education:', ja: '学歴:', ru: 'Образование:', zh: '学历:' },
+  expertiseLabel: { th: 'เชี่ยวชาญ:', en: 'Expertise:', ja: '専門:', ru: 'Специализация:', zh: '专长:' },
+  bioLabel: { th: 'ประวัติ:', en: 'Bio:', ja: '略歴:', ru: 'Биография:', zh: '简介:' },
+  editPkg: { th: 'แก้ไขแพ็คเกจ', en: 'Edit Package', ja: 'パッケージ編集', ru: 'Редакт. пакет', zh: '编辑套餐' },
+  addPkg: { th: 'เพิ่มแพ็คเกจใหม่', en: 'Add New Package', ja: '新規パッケージ追加', ru: 'Добавить пакет', zh: '添加新套餐' },
+  pkgNamePH: { th: 'ชื่อแพ็คเกจ', en: 'Package name', ja: 'パッケージ名', ru: 'Название пакета', zh: '套餐名称' },
+  numHours: { th: 'จำนวนชั่วโมง', en: 'Number of hours', ja: '時間数', ru: 'Кол-во часов', zh: '小时数' },
+  priceBaht: { th: 'ราคา (บาท)', en: 'Price (THB)', ja: '料金（バーツ）', ru: 'Цена (бат)', zh: '价格（泰铢）' },
+  savingText: { th: 'ข้อความประหยัด เช่น ประหยัด 5,000 บาท', en: 'Saving text e.g. Save 5,000 THB', ja: '節約テキスト 例: 5,000バーツお得', ru: 'Текст экономии напр. Экономия 5000 бат', zh: '优惠文字 例如 节省5,000泰铢' },
+  descText: { th: 'รายละเอียด เช่น รวมค่าโค้ชแล้ว', en: 'Description e.g. Coach fee included', ja: '説明 例: コーチ料込み', ru: 'Описание напр. Тренер включён', zh: '描述 例如 含教练费' },
+  showAsPopular: { th: 'แสดงเป็น "ยอดนิยม"', en: 'Show as "Popular"', ja: '「人気」として表示', ru: 'Показать как «Популярный»', zh: '显示为"热门"' },
+  addPkgBtn: { th: 'เพิ่มแพ็คเกจ', en: 'Add Package', ja: 'パッケージ追加', ru: 'Добавить пакет', zh: '添加套餐' },
+  noPackages: { th: 'ยังไม่มีแพ็คเกจ', en: 'No packages yet', ja: 'パッケージがありません', ru: 'Нет пакетов', zh: '暂无套餐' },
+  editPromo: { th: 'แก้ไขโปรโมโค้ด', en: 'Edit Promo Code', ja: 'プロモコード編集', ru: 'Редакт. промокод', zh: '编辑优惠码' },
+  addPromo: { th: 'เพิ่มโปรโมโค้ดใหม่', en: 'Add New Promo Code', ja: '新規プロモコード追加', ru: 'Добавить промокод', zh: '添加新优惠码' },
+  promoCodePH: { th: 'โค้ด เช่น SAVE20', en: 'Code e.g. SAVE20', ja: 'コード 例: SAVE20', ru: 'Код напр. SAVE20', zh: '代码 例如 SAVE20' },
+  discountPercent: { th: 'ลดเป็น % (เปอร์เซ็นต์)', en: 'Percent discount (%)', ja: '割引率（%）', ru: 'Скидка в %', zh: '百分比折扣（%）' },
+  discountFixed: { th: 'ลดเป็นจำนวนเงิน (บาท)', en: 'Fixed amount (THB)', ja: '定額割引（バーツ）', ru: 'Фикс. сумма (бат)', zh: '固定金额（泰铢）' },
+  discountPercentPH: { th: 'ส่วนลด %', en: 'Discount %', ja: '割引 %', ru: 'Скидка %', zh: '折扣 %' },
+  discountFixedPH: { th: 'ส่วนลด (บาท)', en: 'Discount (THB)', ja: '割引（バーツ）', ru: 'Скидка (бат)', zh: '折扣（泰铢）' },
+  expiryDate: { th: 'วันหมดอายุ (เว้นว่าง = ไม่มีกำหนด)', en: 'Expiry date (blank = no expiry)', ja: '有効期限（空欄=無期限）', ru: 'Срок (пусто = бессрочно)', zh: '到期日期（空=无限期）' },
+  addPromoBtn: { th: 'เพิ่มโปรโมโค้ด', en: 'Add Promo Code', ja: 'プロモコード追加', ru: 'Добавить промокод', zh: '添加优惠码' },
+  noPromos: { th: 'ยังไม่มีโปรโมโค้ด', en: 'No promo codes yet', ja: 'プロモコードがありません', ru: 'Нет промокодов', zh: '暂无优惠码' },
+  expired: { th: 'หมดอายุ:', en: 'Expires:', ja: '有効期限:', ru: 'Истекает:', zh: '到期:' },
+  alreadyExpired: { th: '(หมดอายุแล้ว)', en: '(Expired)', ja: '（期限切れ）', ru: '(Истёк)', zh: '（已过期）' },
+  noExpiry: { th: 'ไม่มีวันหมดอายุ', en: 'No expiry', ja: '無期限', ru: 'Бессрочно', zh: '无限期' },
 
   // ---- Manage Booking Modal ----
-  manageBooking: { th: 'จัดการการจอง', en: 'Manage Booking', ja: '予約管理' },
-  customerNameLabel: { th: 'ชื่อลูกค้า', en: 'Customer Name', ja: 'お客様名' },
-  phoneLabel: { th: 'เบอร์โทร', en: 'Phone', ja: '電話' },
-  timeLabel: { th: 'เวลา', en: 'Time', ja: '時間' },
-  machineLabel: { th: 'เครื่อง', en: 'Machine', ja: 'マシン' },
-  paymentMethod: { th: 'วิธีชำระเงิน', en: 'Payment Method', ja: '支払方法' },
-  memberQuotaDeduct: { th: 'หักชั่วโมงสมาชิก', en: 'Member Quota', ja: '会員枠控除' },
-  normalPayment: { th: 'จ่ายเงินปกติ', en: 'Normal Payment', ja: '通常支払い' },
-  coachLabel: { th: 'โค้ช', en: 'Coach', ja: 'コーチ' },
-  netTotal: { th: 'ยอดสุทธิ', en: 'Net Total', ja: '合計金額' },
-  assignCoach: { th: 'มอบหมายโค้ช', en: 'Assign Coach', ja: 'コーチ割当' },
-  noCoach: { th: 'ไม่มีโค้ช', en: 'No Coach', ja: 'コーチなし' },
-  busy: { th: 'ไม่ว่าง', en: 'Busy', ja: '空きなし' },
-  saveCoach: { th: 'บันทึกโค้ช', en: 'Save Coach', ja: 'コーチ保存' },
-  confirmCheckin: { th: 'ยืนยันลูกค้ามาถึง (Check-in)', en: 'Confirm Check-in', ja: 'チェックイン確認' },
-  confirmNoShow: { th: 'ลูกค้าไม่มาแสดงตัว (No-show)', en: 'Mark as No-show', ja: '不参加とマーク' },
-  deleteBooking: { th: 'ลบข้อมูลการจองนี้ (คืนสิทธิ์)', en: 'Delete Booking (Refund Quota)', ja: '予約を削除（枠を返却）' },
+  manageBooking: { th: 'จัดการการจอง', en: 'Manage Booking', ja: '予約管理', ru: 'Управление бронью', zh: '管理预订' },
+  customerNameLabel: { th: 'ชื่อลูกค้า', en: 'Customer Name', ja: 'お客様名', ru: 'Имя клиента', zh: '客户姓名' },
+  phoneLabel: { th: 'เบอร์โทร', en: 'Phone', ja: '電話', ru: 'Телефон', zh: '电话' },
+  timeLabel: { th: 'เวลา', en: 'Time', ja: '時間', ru: 'Время', zh: '时间' },
+  machineLabel: { th: 'เครื่อง', en: 'Machine', ja: 'マシン', ru: 'Машина', zh: '设备' },
+  paymentMethod: { th: 'วิธีชำระเงิน', en: 'Payment Method', ja: '支払方法', ru: 'Способ оплаты', zh: '支付方式' },
+  memberQuotaDeduct: { th: 'หักชั่วโมงสมาชิก', en: 'Member Quota', ja: '会員枠控除', ru: 'Квота участника', zh: '会员额度' },
+  normalPayment: { th: 'จ่ายเงินปกติ', en: 'Normal Payment', ja: '通常支払い', ru: 'Обычная оплата', zh: '普通支付' },
+  coachLabel: { th: 'โค้ช', en: 'Coach', ja: 'コーチ', ru: 'Тренер', zh: '教练' },
+  netTotal: { th: 'ยอดสุทธิ', en: 'Net Total', ja: '合計金額', ru: 'Итого', zh: '净总额' },
+  assignCoach: { th: 'มอบหมายโค้ช', en: 'Assign Coach', ja: 'コーチ割当', ru: 'Назначить тренера', zh: '分配教练' },
+  noCoach: { th: 'ไม่มีโค้ช', en: 'No Coach', ja: 'コーチなし', ru: 'Без тренера', zh: '无教练' },
+  busy: { th: 'ไม่ว่าง', en: 'Busy', ja: '空きなし', ru: 'Занят', zh: '忙碌' },
+  saveCoach: { th: 'บันทึกโค้ช', en: 'Save Coach', ja: 'コーチ保存', ru: 'Сохранить тренера', zh: '保存教练' },
+  confirmCheckin: { th: 'ยืนยันลูกค้ามาถึง (Check-in)', en: 'Confirm Check-in', ja: 'チェックイン確認', ru: 'Подтвердить приход', zh: '确认签到' },
+  confirmNoShow: { th: 'ลูกค้าไม่มาแสดงตัว (No-show)', en: 'Mark as No-show', ja: '不参加とマーク', ru: 'Отметить неявку', zh: '标记未到' },
+  deleteBooking: { th: 'ลบข้อมูลการจองนี้ (คืนสิทธิ์)', en: 'Delete Booking (Refund Quota)', ja: '予約を削除（枠を返却）', ru: 'Удалить бронь (возврат)', zh: '删除预订（退还额度）' },
 
   // ---- Booking Modal ----
-  addBookingAdmin: { th: 'เพิ่มการจอง (แอดมิน)', en: 'Add Booking (Admin)', ja: '予約追加（管理者）' },
-  bookGolf: { th: 'จองเวลาเล่นกอล์ฟ', en: 'Book Golf Session', ja: 'ゴルフセッション予約' },
-  dateLabel: { th: 'วันที่:', en: 'Date:', ja: '日付:' },
-  machineColonLabel: { th: 'เครื่อง:', en: 'Machine:', ja: 'マシン:' },
-  phoneAutoCheck: { th: 'เบอร์ติดต่อ (เช็คสถานะสมาชิกอัตโนมัติ)', en: 'Phone (auto-check membership)', ja: '電話番号（会員自動確認）' },
-  memberCourseRights: { th: 'สิทธิ์คอร์สสมาชิก', en: 'Member Course Rights', ja: '会員コース権利' },
-  useMemberRight: { th: 'ใช้สิทธิ์', en: 'Use', ja: '利用' },
-  includesCoach: { th: '(รวมโค้ชแล้ว)', en: '(Coach included)', ja: '（コーチ込み）' },
-  courseCoach: { th: 'โค้ชประจำคอร์ส:', en: 'Course Coach:', ja: 'コースコーチ:' },
-  hoursUsedUpShort: { th: 'หมดแล้ว —', en: 'Used up —', ja: '残りなし —' },
-  buyCourseMore: { th: 'ซื้อคอร์สเพิ่ม', en: 'Buy more courses', ja: 'コースを追加購入' },
-  bayNoMemberSupport: { th: 'Bay นี้ไม่รองรับสิทธิ์สมาชิก', en: 'This bay does not support member quota', ja: 'このベイは会員枠に対応していません' },
-  customerNameField: { th: 'ชื่อลูกค้า', en: 'Customer Name', ja: 'お客様名' },
-  email: { th: 'อีเมล', en: 'Email', ja: 'メール' },
-  promoCodeLabel: { th: 'โค้ดส่วนลด', en: 'Promo Code', ja: 'プロモコード' },
-  applyCode: { th: 'ใช้โค้ด', en: 'Apply', ja: '適用' },
-  discountLabel: { th: 'ส่วนลด:', en: 'Discount:', ja: '割引:' },
-  addCoachExtra: { th: 'เพิ่มโค้ชสอน (จ่ายเพิ่ม)', en: 'Add Coach (extra charge)', ja: 'コーチ追加（追加料金）' },
-  selectCoach: { th: 'เลือกโค้ช', en: 'Select Coach', ja: 'コーチを選択' },
-  viewProfile: { th: 'ดูโปรไฟล์', en: 'View Profile', ja: 'プロフィール' },
-  todayScheduleOf: { th: 'ตารางวันนี้ของ', en: "Today's schedule for", ja: '本日のスケジュール:' },
-  freeAllDay: { th: 'ว่างทั้งวัน', en: 'Free all day', ja: '終日空き' },
-  memberCourse: { th: 'คอร์สสมาชิก', en: 'Member Course', ja: '会員コース' },
-  machineAndCoachIncluded: { th: 'รวมค่าเครื่อง+โค้ชแล้ว', en: 'Machine + Coach included', ja: 'マシン＋コーチ込み' },
-  assignedCoach: { th: 'โค้ชประจำ', en: 'Assigned Coach', ja: '担当コーチ' },
-  totalLabel: { th: 'ยอดรวม', en: 'Total', ja: '合計' },
-  useCourseRight: { th: '(ใช้สิทธิ์คอร์ส)', en: '(Using course quota)', ja: '（コース枠使用）' },
-  machineFee: { th: 'ค่าเครื่อง', en: 'Machine Fee', ja: 'マシン料金' },
-  coachFee: { th: 'ค่าโค้ช', en: 'Coach Fee', ja: 'コーチ料金' },
-  discount: { th: 'ส่วนลด', en: 'Discount', ja: '割引' },
-  confirmBooking: { th: 'ยืนยันการจอง', en: 'Confirm Booking', ja: '予約確定' },
-  confirmUseRight: { th: 'ยืนยันใช้สิทธิ์', en: 'Confirm Usage', ja: '利用確定' },
-  goToPayment: { th: 'ไปชำระเงิน', en: 'Go to Payment', ja: 'お支払いへ' },
+  addBookingAdmin: { th: 'เพิ่มการจอง (แอดมิน)', en: 'Add Booking (Admin)', ja: '予約追加（管理者）', ru: 'Добавить бронь (Админ)', zh: '添加预订（管理员）' },
+  bookGolf: { th: 'จองเวลาเล่นกอล์ฟ', en: 'Book Golf Session', ja: 'ゴルフセッション予約', ru: 'Забронировать гольф', zh: '预订高尔夫' },
+  dateLabel: { th: 'วันที่:', en: 'Date:', ja: '日付:', ru: 'Дата:', zh: '日期:' },
+  machineColonLabel: { th: 'เครื่อง:', en: 'Machine:', ja: 'マシン:', ru: 'Машина:', zh: '设备:' },
+  phoneAutoCheck: { th: 'เบอร์ติดต่อ (เช็คสถานะสมาชิกอัตโนมัติ)', en: 'Phone (auto-check membership)', ja: '電話番号（会員自動確認）', ru: 'Телефон (авто-проверка)', zh: '手机号（自动检查会员）' },
+  memberCourseRights: { th: 'สิทธิ์คอร์สสมาชิก', en: 'Member Course Rights', ja: '会員コース権利', ru: 'Права курса участника', zh: '会员课程权利' },
+  useMemberRight: { th: 'ใช้สิทธิ์', en: 'Use', ja: '利用', ru: 'Использовать', zh: '使用' },
+  includesCoach: { th: '(รวมโค้ชแล้ว)', en: '(Coach included)', ja: '（コーチ込み）', ru: '(Тренер включён)', zh: '（含教练）' },
+  courseCoach: { th: 'โค้ชประจำคอร์ส:', en: 'Course Coach:', ja: 'コースコーチ:', ru: 'Тренер курса:', zh: '课程教练:' },
+  hoursUsedUpShort: { th: 'หมดแล้ว —', en: 'Used up —', ja: '残りなし —', ru: 'Использовано —', zh: '已用完 —' },
+  buyCourseMore: { th: 'ซื้อคอร์สเพิ่ม', en: 'Buy more courses', ja: 'コースを追加購入', ru: 'Купить ещё', zh: '购买更多课程' },
+  bayNoMemberSupport: { th: 'Bay นี้ไม่รองรับสิทธิ์สมาชิก', en: 'This bay does not support member quota', ja: 'このベイは会員枠に対応していません', ru: 'Бейс не поддерживает квоты', zh: '此球道不支持会员额度' },
+  customerNameField: { th: 'ชื่อลูกค้า', en: 'Customer Name', ja: 'お客様名', ru: 'Имя клиента', zh: '客户姓名' },
+  email: { th: 'อีเมล', en: 'Email', ja: 'メール', ru: 'Эл. почта', zh: '邮箱' },
+  promoCodeLabel: { th: 'โค้ดส่วนลด', en: 'Promo Code', ja: 'プロモコード', ru: 'Промокод', zh: '优惠码' },
+  applyCode: { th: 'ใช้โค้ด', en: 'Apply', ja: '適用', ru: 'Применить', zh: '使用' },
+  discountLabel: { th: 'ส่วนลด:', en: 'Discount:', ja: '割引:', ru: 'Скидка:', zh: '折扣:' },
+  addCoachExtra: { th: 'เพิ่มโค้ชสอน (จ่ายเพิ่ม)', en: 'Add Coach (extra charge)', ja: 'コーチ追加（追加料金）', ru: 'Доп. тренер (доплата)', zh: '添加教练（额外收费）' },
+  selectCoach: { th: 'เลือกโค้ช', en: 'Select Coach', ja: 'コーチを選択', ru: 'Выбрать тренера', zh: '选择教练' },
+  viewProfile: { th: 'ดูโปรไฟล์', en: 'View Profile', ja: 'プロフィール', ru: 'Профиль', zh: '查看资料' },
+  todayScheduleOf: { th: 'ตารางวันนี้ของ', en: "Today's schedule for", ja: '本日のスケジュール:', ru: 'Расписание на сегодня:', zh: '今日课程表:' },
+  freeAllDay: { th: 'ว่างทั้งวัน', en: 'Free all day', ja: '終日空き', ru: 'Свободен весь день', zh: '全天空闲' },
+  memberCourse: { th: 'คอร์สสมาชิก', en: 'Member Course', ja: '会員コース', ru: 'Курс участника', zh: '会员课程' },
+  machineAndCoachIncluded: { th: 'รวมค่าเครื่อง+โค้ชแล้ว', en: 'Machine + Coach included', ja: 'マシン＋コーチ込み', ru: 'Машина + тренер включены', zh: '含设备+教练费' },
+  assignedCoach: { th: 'โค้ชประจำ', en: 'Assigned Coach', ja: '担当コーチ', ru: 'Назначенный тренер', zh: '指定教练' },
+  totalLabel: { th: 'ยอดรวม', en: 'Total', ja: '合計', ru: 'Итого', zh: '总计' },
+  useCourseRight: { th: '(ใช้สิทธิ์คอร์ส)', en: '(Using course quota)', ja: '（コース枠使用）', ru: '(Квота курса)', zh: '（使用课程额度）' },
+  machineFee: { th: 'ค่าเครื่อง', en: 'Machine Fee', ja: 'マシン料金', ru: 'Плата за машину', zh: '设备费' },
+  coachFee: { th: 'ค่าโค้ช', en: 'Coach Fee', ja: 'コーチ料金', ru: 'Плата за тренера', zh: '教练费' },
+  discount: { th: 'ส่วนลด', en: 'Discount', ja: '割引', ru: 'Скидка', zh: '折扣' },
+  confirmBooking: { th: 'ยืนยันการจอง', en: 'Confirm Booking', ja: '予約確定', ru: 'Подтвердить бронь', zh: '确认预订' },
+  confirmUseRight: { th: 'ยืนยันใช้สิทธิ์', en: 'Confirm Usage', ja: '利用確定', ru: 'Подтвердить', zh: '确认使用' },
+  goToPayment: { th: 'ไปชำระเงิน', en: 'Go to Payment', ja: 'お支払いへ', ru: 'К оплате', zh: '去支付' },
 
   // ---- Package Modal ----
-  buyCourseTitle: { th: 'ซื้อคอร์สเรียน/เล่น', en: 'Buy Course/Package', ja: 'コース/パッケージ購入' },
-  coachFeeIncluded: { th: 'รวมค่าโค้ชแล้ว', en: 'Coach fee included', ja: 'コーチ料込み' },
-  hoursLabel: { th: 'ชั่วโมง', en: 'hours', ja: '時間' },
-  plusCoaching: { th: '+ โค้ชสอน', en: '+ Coaching', ja: '+ コーチング' },
-  phoneRefLabel: { th: 'เบอร์โทรศัพท์ (ใช้เป็นรหัสอ้างอิง)', en: 'Phone (used as reference)', ja: '電話番号（参照用）' },
-  selectCourseCoach: { th: 'เลือกโค้ชผู้สอนประจำคอร์ส', en: 'Select Course Coach', ja: 'コースコーチを選択' },
-  addToSystem: { th: 'เพิ่มเข้าระบบ', en: 'Add to System', ja: 'システムに追加' },
+  buyCourseTitle: { th: 'ซื้อคอร์สเรียน/เล่น', en: 'Buy Course/Package', ja: 'コース/パッケージ購入', ru: 'Купить курс/пакет', zh: '购买课程/套餐' },
+  coachFeeIncluded: { th: 'รวมค่าโค้ชแล้ว', en: 'Coach fee included', ja: 'コーチ料込み', ru: 'Тренер включён', zh: '含教练费' },
+  hoursLabel: { th: 'ชั่วโมง', en: 'hours', ja: '時間', ru: 'часов', zh: '小时' },
+  plusCoaching: { th: '+ โค้ชสอน', en: '+ Coaching', ja: '+ コーチング', ru: '+ Тренировка', zh: '+ 教练指导' },
+  phoneRefLabel: { th: 'เบอร์โทรศัพท์ (ใช้เป็นรหัสอ้างอิง)', en: 'Phone (used as reference)', ja: '電話番号（参照用）', ru: 'Телефон (как ID)', zh: '手机号（作为参考）' },
+  selectCourseCoach: { th: 'เลือกโค้ชผู้สอนประจำคอร์ส', en: 'Select Course Coach', ja: 'コースコーチを選択', ru: 'Выбрать тренера курса', zh: '选择课程教练' },
+  addToSystem: { th: 'เพิ่มเข้าระบบ', en: 'Add to System', ja: 'システムに追加', ru: 'Добавить в систему', zh: '添加到系统' },
 
   // ---- Payment Modal ----
-  scanToPay: { th: 'สแกนชำระเงิน', en: 'Scan to Pay', ja: 'QRコードでお支払い' },
-  packageLabel: { th: 'แพ็กเกจ:', en: 'Package:', ja: 'パッケージ:' },
-  buyer: { th: 'ผู้ซื้อ:', en: 'Buyer:', ja: '購入者:' },
-  machineColon: { th: 'เครื่อง:', en: 'Machine:', ja: 'マシン:' },
-  memberRightLabel: { th: 'สิทธิ์สมาชิก:', en: 'Member Quota:', ja: '会員枠:' },
-  deduct1Hour: { th: 'หัก 1 ชั่วโมง', en: 'Deduct 1 hour', ja: '1時間控除' },
-  machineFeeColon: { th: 'ค่าเครื่อง:', en: 'Machine fee:', ja: 'マシン料金:' },
-  coachFeeColon: { th: 'ค่าโค้ช', en: 'Coach fee', ja: 'コーチ料金' },
-  discountColon: { th: 'ส่วนลด:', en: 'Discount:', ja: '割引:' },
-  netTotalColon: { th: 'ยอดรวมสุทธิ:', en: 'Net Total:', ja: '合計金額:' },
-  confirmPayment: { th: 'แจ้งชำระเงินแล้ว', en: 'Confirm Payment', ja: '支払い確認' },
+  scanToPay: { th: 'สแกนชำระเงิน', en: 'Scan to Pay', ja: 'QRコードでお支払い', ru: 'Сканировать для оплаты', zh: '扫码支付' },
+  packageLabel: { th: 'แพ็กเกจ:', en: 'Package:', ja: 'パッケージ:', ru: 'Пакет:', zh: '套餐:' },
+  buyer: { th: 'ผู้ซื้อ:', en: 'Buyer:', ja: '購入者:', ru: 'Покупатель:', zh: '买家:' },
+  machineColon: { th: 'เครื่อง:', en: 'Machine:', ja: 'マシン:', ru: 'Машина:', zh: '设备:' },
+  memberRightLabel: { th: 'สิทธิ์สมาชิก:', en: 'Member Quota:', ja: '会員枠:', ru: 'Квота участника:', zh: '会员额度:' },
+  deduct1Hour: { th: 'หัก 1 ชั่วโมง', en: 'Deduct 1 hour', ja: '1時間控除', ru: 'Списать 1 час', zh: '扣除1小时' },
+  machineFeeColon: { th: 'ค่าเครื่อง:', en: 'Machine fee:', ja: 'マシン料金:', ru: 'Плата за машину:', zh: '设备费:' },
+  coachFeeColon: { th: 'ค่าโค้ช', en: 'Coach fee', ja: 'コーチ料金', ru: 'Плата за тренера', zh: '教练费' },
+  discountColon: { th: 'ส่วนลด:', en: 'Discount:', ja: '割引:', ru: 'Скидка:', zh: '折扣:' },
+  netTotalColon: { th: 'ยอดรวมสุทธิ:', en: 'Net Total:', ja: '合計金額:', ru: 'Итого:', zh: '净总额:' },
+  confirmPayment: { th: 'แจ้งชำระเงินแล้ว', en: 'Confirm Payment', ja: '支払い確認', ru: 'Подтвердить оплату', zh: '确认支付' },
 
   // ---- Coach Profile Modal ----
-  perHour: { th: '/ ชั่วโมง', en: '/ hour', ja: '/ 時間' },
-  educationCert: { th: 'วุฒิการศึกษา / ใบรับรอง', en: 'Education / Certification', ja: '学歴 / 資格' },
-  expertiseTitle: { th: 'ความเชี่ยวชาญ', en: 'Expertise', ja: '専門分野' },
-  close: { th: 'ปิด', en: 'Close', ja: '閉じる' },
+  perHour: { th: '/ ชั่วโมง', en: '/ hour', ja: '/ 時間', ru: '/ час', zh: '/ 小时' },
+  educationCert: { th: 'วุฒิการศึกษา / ใบรับรอง', en: 'Education / Certification', ja: '学歴 / 資格', ru: 'Образование / Сертификат', zh: '学历 / 认证' },
+  expertiseTitle: { th: 'ความเชี่ยวชาญ', en: 'Expertise', ja: '専門分野', ru: 'Специализация', zh: '专长' },
+  close: { th: 'ปิด', en: 'Close', ja: '閉じる', ru: 'Закрыть', zh: '关闭' },
 
   // ---- Alert messages ----
-  alertEnterCoachName: { th: 'กรุณากรอกชื่อโค้ช', en: 'Please enter coach name', ja: 'コーチ名を入力してください' },
-  alertDeleteCoach: { th: 'ลบโค้ชนี้?', en: 'Delete this coach?', ja: 'このコーチを削除しますか？' },
-  alertEnterBayName: { th: 'กรุณากรอกชื่อเบย์', en: 'Please enter bay name', ja: 'ベイ名を入力してください' },
-  alertDeleteBay: { th: 'ลบเบย์นี้? (การจองที่มีอยู่แล้วจะไม่ถูกลบ)', en: 'Delete this bay? (Existing bookings will not be removed)', ja: 'このベイを削除しますか？（既存の予約は削除されません）' },
-  alertEnterPkgName: { th: 'กรุณากรอกชื่อแพ็คเกจ', en: 'Please enter package name', ja: 'パッケージ名を入力してください' },
-  alertDeletePkg: { th: 'ลบแพ็คเกจนี้?', en: 'Delete this package?', ja: 'このパッケージを削除しますか？' },
-  alertEnterPromoCode: { th: 'กรุณากรอกโค้ดโปรโมชั่น', en: 'Please enter promo code', ja: 'プロモコードを入力してください' },
-  alertDeletePromo: { th: 'ลบโปรโมโค้ดนี้?', en: 'Delete this promo code?', ja: 'このプロモコードを削除しますか？' },
-  alertImageTooLarge: { th: 'รูปภาพต้องมีขนาดไม่เกิน 500KB', en: 'Image must be under 500KB', ja: '画像は500KB以下にしてください' },
-  alertPromoNoQuota: { th: 'ไม่สามารถใช้โค้ดส่วนลดร่วมกับการหักชั่วโมงสมาชิกได้', en: 'Cannot use promo code with member quota deduction', ja: 'プロモコードと会員枠控除は併用できません' },
-  alertPromoInvalid: { th: 'โค้ดส่วนลดไม่ถูกต้องหรือหมดอายุ', en: 'Invalid or expired promo code', ja: '無効または期限切れのプロモコード' },
-  alertPromoExpired: { th: 'โค้ดส่วนลดนี้หมดอายุแล้ว', en: 'This promo code has expired', ja: 'このプロモコードは期限切れです' },
-  alertPromoSuccessPercent: { th: 'ใช้โค้ดส่วนลดสำเร็จ! ลด', en: 'Promo applied! Discount', ja: 'プロモ適用！割引' },
-  alertPromoSuccessFixed: { th: 'ใช้โค้ดส่วนลดสำเร็จ! ลด', en: 'Promo applied! Discount', ja: 'プロモ適用！割引' },
-  alertFillNamePhone: { th: 'กรุณากรอกชื่อและเบอร์ติดต่อ', en: 'Please enter name and phone', ja: '名前と電話番号を入力してください' },
-  alertBayNoMember: { th: 'Bay นี้ไม่สามารถใช้สิทธิ์สมาชิกได้ (ไม่มีประเภทเครื่อง)', en: 'This bay does not support member quota (no machine type)', ja: 'このベイは会員枠に対応していません（マシン種別なし）' },
-  alertHoursUsedUp: { th: 'หมดแล้ว กรุณาซื้อเพิ่มในเมนูสมาชิก', en: 'Used up. Please buy more in Members menu', ja: '残りなし。会員メニューで追加購入してください' },
-  alertCourseCoachBusy: { th: '(โค้ชประจำคอร์ส) ไม่ว่างในเวลานี้ กรุณาเลือกเวลาอื่น', en: '(Course coach) is busy at this time. Please choose another time', ja: '（コースコーチ）はこの時間帯は予約済みです。別の時間を選択してください' },
-  alertCoachBusy: { th: 'ไม่ว่างในเวลานี้ กรุณาเลือกโค้ชท่านอื่นหรือเปลี่ยนเวลา', en: 'is busy at this time. Please choose another coach or time', ja: 'はこの時間帯は予約済みです。別のコーチまたは時間を選択してください' },
-  alertMemberBookingSuccess: { th: 'ใช้สิทธิ์สมาชิกเรียบร้อยแล้ว การจองสำเร็จ!', en: 'Member quota used. Booking successful!', ja: '会員枠を使用しました。予約完了！' },
-  alertCalendarSent: { th: 'ส่งคำเชิญลงปฏิทินนัดหมายไปยัง', en: 'Calendar invite sent to', ja: 'カレンダー招待を送信しました:' },
-  alertCalendarSentSuffix: { th: 'เรียบร้อยแล้ว', en: 'successfully', ja: '' },
-  alertFillNamePhonePkg: { th: 'กรุณากรอกชื่อและเบอร์โทรศัพท์', en: 'Please enter name and phone', ja: '名前と電話番号を入力してください' },
-  alertSelectCoach: { th: 'กรุณาเลือกโค้ชผู้สอน', en: 'Please select a coach', ja: 'コーチを選択してください' },
-  alertPkgSuccess: { th: 'สั่งซื้อ', en: 'Purchased', ja: '購入完了' },
-  alertPkgSuccessSuffix: { th: 'สำเร็จ! โค้ชผู้สอน:', en: 'successfully! Coach:', ja: '！コーチ:' },
-  alertPkgAddedHours: { th: 'เพิ่ม', en: 'Added', ja: '追加' },
-  alertPkgAddedSuffix: { th: 'เข้าสู่ระบบแล้ว', en: 'to system', ja: 'をシステムに追加' },
-  alertCustomerCannotEdit: { th: 'ลูกค้าไม่สามารถแก้ไขการจองได้ กรุณาติดต่อหน้าร้าน', en: 'Customers cannot modify bookings. Please contact the front desk.', ja: 'お客様は予約を変更できません。フロントにお問い合わせください。' },
-  alertCoachSaved: { th: 'บันทึกโค้ชสำเร็จ', en: 'Coach saved successfully', ja: 'コーチを保存しました' },
-  alertCoachBusyManage: { th: 'ไม่ว่างในเวลานี้', en: 'is busy at this time', ja: 'はこの時間帯は予約済みです' },
-  alertChooseAnotherCoach: { th: 'กรุณาเลือกโค้ชท่านอื่น', en: 'Please choose another coach', ja: '別のコーチを選択してください' },
-  alertConfirmCancel: { th: 'คุณต้องการยกเลิกการจองนี้ใช่หรือไม่?', en: 'Do you want to cancel this booking?', ja: 'この予約をキャンセルしますか？' },
+  alertEnterCoachName: { th: 'กรุณากรอกชื่อโค้ช', en: 'Please enter coach name', ja: 'コーチ名を入力してください', ru: 'Введите имя тренера', zh: '请输入教练姓名' },
+  alertDeleteCoach: { th: 'ลบโค้ชนี้?', en: 'Delete this coach?', ja: 'このコーチを削除しますか？', ru: 'Удалить тренера?', zh: '删除该教练？' },
+  alertEnterBayName: { th: 'กรุณากรอกชื่อเบย์', en: 'Please enter bay name', ja: 'ベイ名を入力してください', ru: 'Введите название бейса', zh: '请输入球道名称' },
+  alertDeleteBay: { th: 'ลบเบย์นี้? (การจองที่มีอยู่แล้วจะไม่ถูกลบ)', en: 'Delete this bay? (Existing bookings will not be removed)', ja: 'このベイを削除しますか？（既存の予約は削除されません）', ru: 'Удалить бейс? (Существующие брони сохранятся)', zh: '删除此球道？（现有预订不会被删除）' },
+  alertEnterPkgName: { th: 'กรุณากรอกชื่อแพ็คเกจ', en: 'Please enter package name', ja: 'パッケージ名を入力してください', ru: 'Введите название пакета', zh: '请输入套餐名称' },
+  alertDeletePkg: { th: 'ลบแพ็คเกจนี้?', en: 'Delete this package?', ja: 'このパッケージを削除しますか？', ru: 'Удалить пакет?', zh: '删除此套餐？' },
+  alertEnterPromoCode: { th: 'กรุณากรอกโค้ดโปรโมชั่น', en: 'Please enter promo code', ja: 'プロモコードを入力してください', ru: 'Введите промокод', zh: '请输入优惠码' },
+  alertDeletePromo: { th: 'ลบโปรโมโค้ดนี้?', en: 'Delete this promo code?', ja: 'このプロモコードを削除しますか？', ru: 'Удалить промокод?', zh: '删除此优惠码？' },
+  alertImageTooLarge: { th: 'รูปภาพต้องมีขนาดไม่เกิน 500KB', en: 'Image must be under 500KB', ja: '画像は500KB以下にしてください', ru: 'Изображение до 500KB', zh: '图片不超过500KB' },
+  alertPromoNoQuota: { th: 'ไม่สามารถใช้โค้ดส่วนลดร่วมกับการหักชั่วโมงสมาชิกได้', en: 'Cannot use promo code with member quota deduction', ja: 'プロモコードと会員枠控除は併用できません', ru: 'Нельзя совмещать промокод с квотой', zh: '优惠码不能与会员额度同时使用' },
+  alertPromoInvalid: { th: 'โค้ดส่วนลดไม่ถูกต้องหรือหมดอายุ', en: 'Invalid or expired promo code', ja: '無効または期限切れのプロモコード', ru: 'Неверный или просроченный промокод', zh: '优惠码无效或已过期' },
+  alertPromoExpired: { th: 'โค้ดส่วนลดนี้หมดอายุแล้ว', en: 'This promo code has expired', ja: 'このプロモコードは期限切れです', ru: 'Этот промокод истёк', zh: '此优惠码已过期' },
+  alertPromoSuccessPercent: { th: 'ใช้โค้ดส่วนลดสำเร็จ! ลด', en: 'Promo applied! Discount', ja: 'プロモ適用！割引', ru: 'Промо применён! Скидка', zh: '优惠码使用成功！折扣' },
+  alertPromoSuccessFixed: { th: 'ใช้โค้ดส่วนลดสำเร็จ! ลด', en: 'Promo applied! Discount', ja: 'プロモ適用！割引', ru: 'Промо применён! Скидка', zh: '优惠码使用成功！折扣' },
+  alertFillNamePhone: { th: 'กรุณากรอกชื่อและเบอร์ติดต่อ', en: 'Please enter name and phone', ja: '名前と電話番号を入力してください', ru: 'Введите имя и телефон', zh: '请输入姓名和手机号' },
+  alertBayNoMember: { th: 'Bay นี้ไม่สามารถใช้สิทธิ์สมาชิกได้ (ไม่มีประเภทเครื่อง)', en: 'This bay does not support member quota (no machine type)', ja: 'このベイは会員枠に対応していません（マシン種別なし）', ru: 'Бейс не поддерживает квоты (нет типа)', zh: '此球道不支持会员额度（无设备类型）' },
+  alertHoursUsedUp: { th: 'หมดแล้ว กรุณาซื้อเพิ่มในเมนูสมาชิก', en: 'Used up. Please buy more in Members menu', ja: '残りなし。会員メニューで追加購入してください', ru: 'Использовано. Купите ещё', zh: '已用完，请在会员菜单购买更多' },
+  alertCourseCoachBusy: { th: '(โค้ชประจำคอร์ส) ไม่ว่างในเวลานี้ กรุณาเลือกเวลาอื่น', en: '(Course coach) is busy at this time. Please choose another time', ja: '（コースコーチ）はこの時間帯は予約済みです。別の時間を選択してください', ru: '(Тренер курса) занят. Выберите другое время', zh: '（课程教练）此时间忙碌，请选择其他时间' },
+  alertCoachBusy: { th: 'ไม่ว่างในเวลานี้ กรุณาเลือกโค้ชท่านอื่นหรือเปลี่ยนเวลา', en: 'is busy at this time. Please choose another coach or time', ja: 'はこの時間帯は予約済みです。別のコーチまたは時間を選択してください', ru: 'занят. Выберите другого тренера или время', zh: '此时间忙碌，请选择其他教练或时间' },
+  alertMemberBookingSuccess: { th: 'ใช้สิทธิ์สมาชิกเรียบร้อยแล้ว การจองสำเร็จ!', en: 'Member quota used. Booking successful!', ja: '会員枠を使用しました。予約完了！', ru: 'Квота использована. Бронирование успешно!', zh: '会员额度已使用，预订成功！' },
+  alertCalendarSent: { th: 'ส่งคำเชิญลงปฏิทินนัดหมายไปยัง', en: 'Calendar invite sent to', ja: 'カレンダー招待を送信しました:', ru: 'Приглашение отправлено:', zh: '日历邀请已发送至' },
+  alertCalendarSentSuffix: { th: 'เรียบร้อยแล้ว', en: 'successfully', ja: '', ru: 'успешно', zh: '成功' },
+  alertFillNamePhonePkg: { th: 'กรุณากรอกชื่อและเบอร์โทรศัพท์', en: 'Please enter name and phone', ja: '名前と電話番号を入力してください', ru: 'Введите имя и телефон', zh: '请输入姓名和手机号' },
+  alertSelectCoach: { th: 'กรุณาเลือกโค้ชผู้สอน', en: 'Please select a coach', ja: 'コーチを選択してください', ru: 'Выберите тренера', zh: '请选择教练' },
+  alertPkgSuccess: { th: 'สั่งซื้อ', en: 'Purchased', ja: '購入完了', ru: 'Куплено', zh: '购买成功' },
+  alertPkgSuccessSuffix: { th: 'สำเร็จ! โค้ชผู้สอน:', en: 'successfully! Coach:', ja: '！コーチ:', ru: 'успешно! Тренер:', zh: '成功！教练:' },
+  alertPkgAddedHours: { th: 'เพิ่ม', en: 'Added', ja: '追加', ru: 'Добавлено', zh: '添加' },
+  alertPkgAddedSuffix: { th: 'เข้าสู่ระบบแล้ว', en: 'to system', ja: 'をシステムに追加', ru: 'в систему', zh: '到系统' },
+  alertCustomerCannotEdit: { th: 'ลูกค้าไม่สามารถแก้ไขการจองได้ กรุณาติดต่อหน้าร้าน', en: 'Customers cannot modify bookings. Please contact the front desk.', ja: 'お客様は予約を変更できません。フロントにお問い合わせください。', ru: 'Клиенты не могут менять бронь. Обратитесь на рецепцию.', zh: '客户无法修改预订，请联系前台。' },
+  alertCoachSaved: { th: 'บันทึกโค้ชสำเร็จ', en: 'Coach saved successfully', ja: 'コーチを保存しました', ru: 'Тренер сохранён', zh: '教练保存成功' },
+  alertCoachBusyManage: { th: 'ไม่ว่างในเวลานี้', en: 'is busy at this time', ja: 'はこの時間帯は予約済みです', ru: 'занят в это время', zh: '此时间忙碌' },
+  alertChooseAnotherCoach: { th: 'กรุณาเลือกโค้ชท่านอื่น', en: 'Please choose another coach', ja: '別のコーチを選択してください', ru: 'Выберите другого тренера', zh: '请选择其他教练' },
+  alertConfirmCancel: { th: 'คุณต้องการยกเลิกการจองนี้ใช่หรือไม่?', en: 'Do you want to cancel this booking?', ja: 'この予約をキャンセルしますか？', ru: 'Отменить бронирование?', zh: '确定取消此预订吗？' },
 
   // ---- CSV export headers ----
-  csvId: { th: 'รหัส', en: 'ID', ja: 'ID' },
-  csvDate: { th: 'วันที่', en: 'Date', ja: '日付' },
-  csvTime: { th: 'เวลา', en: 'Time', ja: '時間' },
-  csvMachine: { th: 'เครื่อง', en: 'Machine', ja: 'マシン' },
-  csvCustomer: { th: 'ชื่อลูกค้า', en: 'Customer', ja: 'お客様' },
-  csvPhone: { th: 'เบอร์โทร', en: 'Phone', ja: '電話' },
-  csvCoach: { th: 'โค้ช', en: 'Coach', ja: 'コーチ' },
-  csvCoachName: { th: 'ชื่อโค้ช', en: 'Coach Name', ja: 'コーチ名' },
-  csvMemberQuota: { th: 'สิทธิ์สมาชิก', en: 'Member Quota', ja: '会員枠' },
-  csvStatus: { th: 'สถานะ', en: 'Status', ja: 'ステータス' },
-  csvDiscount: { th: 'ส่วนลด', en: 'Discount', ja: '割引' },
-  csvNetAmount: { th: 'ยอดสุทธิ', en: 'Net Amount', ja: '合計金額' },
-  csvHasCoach: { th: 'มี', en: 'Yes', ja: 'あり' },
-  csvNoCoach: { th: 'ไม่มี', en: 'No', ja: 'なし' },
-  csvDeductHours: { th: 'หักชั่วโมง', en: 'Deducted', ja: '控除' },
-  csvNormalPay: { th: 'จ่ายปกติ', en: 'Normal', ja: '通常' },
+  csvId: { th: 'รหัส', en: 'ID', ja: 'ID', ru: 'ID', zh: 'ID' },
+  csvDate: { th: 'วันที่', en: 'Date', ja: '日付', ru: 'Дата', zh: '日期' },
+  csvTime: { th: 'เวลา', en: 'Time', ja: '時間', ru: 'Время', zh: '时间' },
+  csvMachine: { th: 'เครื่อง', en: 'Machine', ja: 'マシン', ru: 'Машина', zh: '设备' },
+  csvCustomer: { th: 'ชื่อลูกค้า', en: 'Customer', ja: 'お客様', ru: 'Клиент', zh: '客户' },
+  csvPhone: { th: 'เบอร์โทร', en: 'Phone', ja: '電話', ru: 'Телефон', zh: '电话' },
+  csvCoach: { th: 'โค้ช', en: 'Coach', ja: 'コーチ', ru: 'Тренер', zh: '教练' },
+  csvCoachName: { th: 'ชื่อโค้ช', en: 'Coach Name', ja: 'コーチ名', ru: 'Имя тренера', zh: '教练姓名' },
+  csvMemberQuota: { th: 'สิทธิ์สมาชิก', en: 'Member Quota', ja: '会員枠', ru: 'Квота участника', zh: '会员额度' },
+  csvStatus: { th: 'สถานะ', en: 'Status', ja: 'ステータス', ru: 'Статус', zh: '状态' },
+  csvDiscount: { th: 'ส่วนลด', en: 'Discount', ja: '割引', ru: 'Скидка', zh: '折扣' },
+  csvNetAmount: { th: 'ยอดสุทธิ', en: 'Net Amount', ja: '合計金額', ru: 'Сумма', zh: '净金额' },
+  csvHasCoach: { th: 'มี', en: 'Yes', ja: 'あり', ru: 'Да', zh: '有' },
+  csvNoCoach: { th: 'ไม่มี', en: 'No', ja: 'なし', ru: 'Нет', zh: '无' },
+  csvDeductHours: { th: 'หักชั่วโมง', en: 'Deducted', ja: '控除', ru: 'Списано', zh: '扣除' },
+  csvNormalPay: { th: 'จ่ายปกติ', en: 'Normal', ja: '通常', ru: 'Обычная', zh: '正常' },
 
   // ---- Calendar view ----
-  bookingsCount: { th: 'รายการ', en: 'bookings', ja: '件' },
+  bookingsCount: { th: 'รายการ', en: 'bookings', ja: '件', ru: 'бронирований', zh: '预订' },
 
   // ---- Misc ----
-  bahtUnit: { th: 'บาท', en: 'THB', ja: 'バーツ' },
+  bahtUnit: { th: 'บาท', en: 'THB', ja: 'バーツ', ru: 'бат', zh: '泰铢' },
+
+  // ---- Lesson Notes ----
+  uniqueClients: { th: 'ลูกค้า', en: 'Clients', ja: '生徒数', ru: 'Клиенты', zh: '学员' },
+  lessonNotes: { th: 'บันทึกการสอน', en: 'Lesson Notes', ja: 'レッスンノート', ru: 'Заметки урока', zh: '课程笔记' },
+  addNotes: { th: 'เพิ่มบันทึก', en: 'Add Notes', ja: 'ノート追加', ru: 'Добавить заметку', zh: '添加笔记' },
+  editNotes: { th: 'แก้ไขบันทึก', en: 'Edit Notes', ja: 'ノート編集', ru: 'Редактировать', zh: '编辑笔记' },
+  viewNotes: { th: 'ดูบันทึก', en: 'View Notes', ja: 'ノート閲覧', ru: 'Просмотр', zh: '查看笔记' },
+  lessonNumber: { th: 'ครั้งที่', en: 'Lesson #', ja: 'レッスン#', ru: 'Урок #', zh: '第' },
+  topicTaught: { th: 'หัวข้อที่สอน', en: 'Topic Taught', ja: '指導内容', ru: 'Тема', zh: '教学主题' },
+  homeworkAssigned: { th: 'การบ้าน', en: 'Homework', ja: '宿題', ru: 'Домашнее задание', zh: '作业' },
+  generalNotes: { th: 'บันทึกทั่วไป', en: 'General Notes', ja: 'メモ', ru: 'Заметки', zh: '备注' },
+  attachments: { th: 'ไฟล์แนบ', en: 'Attachments', ja: '添付ファイル', ru: 'Вложения', zh: '附件' },
+  addAttachment: { th: 'แนบไฟล์/รูป', en: 'Attach File/Image', ja: 'ファイル添付', ru: 'Прикрепить файл', zh: '添加附件/图片' },
+  saveNotes: { th: 'บันทึก', en: 'Save Notes', ja: 'ノート保存', ru: 'Сохранить', zh: '保存笔记' },
+  noNotesYet: { th: 'ยังไม่มีบันทึก', en: 'No notes yet', ja: 'ノートなし', ru: 'Нет заметок', zh: '暂无笔记' },
+  learningHistory: { th: 'ประวัติการเรียน', en: 'Learning History', ja: '学習履歴', ru: 'История обучения', zh: '学习历史' },
+  noLearningHistory: { th: 'ยังไม่มีประวัติการเรียน', en: 'No learning history yet', ja: '学習履歴なし', ru: 'Нет истории', zh: '暂无学习记录' },
+  topicPlaceholder: { th: 'เช่น Swing Basic, Short Game', en: 'e.g. Swing Basic, Short Game', ja: '例: スイング基礎', ru: 'напр. Свинг, Паттинг', zh: '例如：挥杆基础' },
+  homeworkPlaceholder: { th: 'เช่น ฝึก Putting 30 นาที/วัน', en: 'e.g. Practice putting 30 min/day', ja: '例: パッティング30分/日', ru: 'напр. Паттинг 30 мин/день', zh: '例如：每天练习推杆30分钟' },
+  notesPlaceholder: { th: 'บันทึกเพิ่มเติม...', en: 'Additional notes...', ja: '追加メモ...', ru: 'Дополнительные заметки...', zh: '额外备注...' },
+  fileTooLarge: { th: 'ไฟล์ต้องมีขนาดไม่เกิน 2MB', en: 'File must be under 2MB', ja: 'ファイルは2MB以下', ru: 'Файл до 2МБ', zh: '文件不超过2MB' },
+
+  // ---- Coach Clients Page ----
+  myClients: { th: 'ลูกค้าของฉัน', en: 'My Clients', ja: '担当生徒', ru: 'Мои клиенты', zh: '我的学员' },
+  totalClients: { th: 'ลูกค้าทั้งหมด', en: 'Total Clients', ja: '生徒総数', ru: 'Всего клиентов', zh: '学员总数' },
+  totalLessons: { th: 'สอนทั้งหมด', en: 'Total Lessons', ja: '総レッスン数', ru: 'Всего уроков', zh: '总课程数' },
+  clientLessonLog: { th: 'บันทึกการสอน', en: 'Lesson Log', ja: 'レッスン記録', ru: 'Журнал уроков', zh: '课程记录' },
+  addNewNote: { th: 'เพิ่มบันทึกใหม่', en: 'Add New Note', ja: '新規ノート', ru: 'Новая заметка', zh: '添加新笔记' },
+  lastLesson: { th: 'สอนล่าสุด', en: 'Last Lesson', ja: '最終レッスン', ru: 'Последний урок', zh: '最近课程' },
+  lessonsCount: { th: 'สอนแล้ว', en: 'Lessons', ja: 'レッスン', ru: 'Уроков', zh: '已上课' },
+  timesUnit: { th: 'ครั้ง', en: 'times', ja: '回', ru: 'раз', zh: '次' },
+  noClients: { th: 'ยังไม่มีลูกค้า', en: 'No clients yet', ja: '生徒がいません', ru: 'Нет клиентов', zh: '暂无学员' },
+  noClientsDesc: { th: 'เมื่อมีการจองเรียนกับคุณ ลูกค้าจะแสดงที่นี่', en: 'Clients will appear here when they book lessons with you', ja: 'レッスン予約が入ると生徒が表示されます', ru: 'Клиенты появятся после бронирования уроков', zh: '当学员预约您的课程后将显示在这里' },
+  backToList: { th: 'กลับ', en: 'Back', ja: '戻る', ru: 'Назад', zh: '返回' },
+  lessonOf: { th: 'ของ', en: 'for', ja: 'の', ru: 'для', zh: '的' },
 };
 const DEFAULT_COACHES = [
   { id: 1, name: 'โค้ชเอ', price: 2000, education: 'PGA Teaching Professional', expertise: 'Short Game, Putting', bio: 'ประสบการณ์สอน 10 ปี เน้นเทคนิค Short Game และ Putting ให้ผลลัพธ์ที่วัดได้จริง', avatar: '', active: true },
@@ -567,6 +605,69 @@ export default function App() {
     );
   };
 
+  // ---------------- LESSON NOTES HANDLERS ----------------
+  const getLessonNotesForBooking = (bookingId) => lessonNotes.find(n => n.bookingId === bookingId);
+  const getNextLessonNumber = (customerPhone, coachName) => {
+    const existing = lessonNotes.filter(n => n.customerPhone === customerPhone && n.coachName === coachName);
+    return existing.length > 0 ? Math.max(...existing.map(n => n.lessonNumber)) + 1 : 1;
+  };
+  const openLessonNoteModal = (booking, existingNote = null) => {
+    if (existingNote) {
+      setEditingLessonNote(existingNote);
+      setLessonNoteForm({
+        bookingId: existingNote.bookingId, coachName: existingNote.coachName,
+        customerPhone: existingNote.customerPhone, customerName: existingNote.customerName,
+        date: existingNote.date, lessonNumber: existingNote.lessonNumber,
+        topic: existingNote.topic, homework: existingNote.homework,
+        notes: existingNote.notes, attachments: existingNote.attachments || [],
+      });
+    } else {
+      setEditingLessonNote(null);
+      setLessonNoteForm({
+        bookingId: booking.id, coachName: booking.coachName,
+        customerPhone: booking.phone, customerName: booking.customerName,
+        date: booking.date, lessonNumber: getNextLessonNumber(booking.phone, booking.coachName),
+        topic: '', homework: '', notes: '', attachments: [],
+      });
+    }
+    setIsLessonNoteModalOpen(true);
+  };
+  const handleSaveLessonNote = () => {
+    if (editingLessonNote) {
+      setLessonNotes(lessonNotes.map(n =>
+        n.id === editingLessonNote.id ? { ...n, ...lessonNoteForm, updatedAt: new Date().toISOString() } : n
+      ));
+    } else {
+      setLessonNotes([...lessonNotes, { id: Date.now(), ...lessonNoteForm, createdAt: new Date().toISOString() }]);
+    }
+    setIsLessonNoteModalOpen(false);
+  };
+  const handleLessonNoteAttachment = (file) => {
+    if (!file) return;
+    if (file.size > 2000000) { alert(t('fileTooLarge')); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setLessonNoteForm(prev => ({
+        ...prev, attachments: [...prev.attachments, { name: file.name, type: file.type, dataUrl: e.target.result }]
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+  const removeLessonNoteAttachment = (index) => {
+    setLessonNoteForm(prev => ({ ...prev, attachments: prev.attachments.filter((_, i) => i !== index) }));
+  };
+  // Open lesson note modal for a client (no specific booking - for adding from clients page)
+  const openNewNoteForClient = (clientPhone, clientName, coachName) => {
+    setEditingLessonNote(null);
+    setLessonNoteForm({
+      bookingId: `manual_${Date.now()}`, coachName,
+      customerPhone: clientPhone, customerName: clientName,
+      date: getTodayString(), lessonNumber: getNextLessonNumber(clientPhone, coachName),
+      topic: '', homework: '', notes: '', attachments: [],
+    });
+    setIsLessonNoteModalOpen(true);
+  };
+
   // ---------------- AUTH STATE ----------------
   const [appUsers, setAppUsers] = useState([
     { id: 1, name: 'Admin', phone: '0999999999', password: '1234', role: 'admin', coachName: '', avatar: '' },
@@ -605,6 +706,17 @@ export default function App() {
     { phone: '0812345678', name: 'คุณสมชาย', lineId: 'somchai123', email: 'somchai@test.com', trackmanHours: 5, trackmanBought: 10, trackmanCoach: 'โค้ชเอ', foresightHours: 10, foresightBought: 10, foresightCoach: 'โค้ชบี' },
     { phone: '0887776666', name: 'คุณจอห์น', lineId: 'john_doe', email: 'john@mail.com', trackmanHours: 8, trackmanBought: 20, trackmanCoach: 'โค้ชบี', foresightHours: 15, foresightBought: 20, foresightCoach: 'โค้ชซี' },
   ]);
+
+  // Lesson Notes state
+  const [lessonNotes, setLessonNotes] = useState([]);
+  const [isLessonNoteModalOpen, setIsLessonNoteModalOpen] = useState(false);
+  const [editingLessonNote, setEditingLessonNote] = useState(null);
+  const [lessonNoteForm, setLessonNoteForm] = useState({
+    bookingId: null, coachName: '', customerPhone: '', customerName: '', date: '',
+    lessonNumber: 1, topic: '', homework: '', notes: '', attachments: [],
+  });
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null); // { phone, name } for coach-clients detail view
 
   // Report date range
   const [reportStartDate, setReportStartDate] = useState(() => {
@@ -1201,13 +1313,14 @@ export default function App() {
     const foresightTotal = myBookings.filter(b => getMachineType(b.machine) === 'foresight' || getMachineType(b.machine) === null).length;
     const trackmanThisMonth = calMonthBookings.filter(b => getMachineType(b.machine) === 'trackman').length;
     const foresightThisMonth = calMonthBookings.filter(b => getMachineType(b.machine) === 'foresight' || getMachineType(b.machine) === null).length;
+    const uniqueClients = new Set(myBookings.map(b => b.phone)).size;
 
     // Calendar grid data
     const calBlanks = Array.from({ length: new Date(calY, calM, 1).getDay() }, (_, i) => i);
     const calDays = Array.from({ length: new Date(calY, calM + 1, 0).getDate() }, (_, i) => i + 1);
 
     return {
-      today, upcoming, past,
+      today, upcoming, past, uniqueClients,
       totalThisMonth: calMonthBookings.length, total: myBookings.length,
       calendarMap, calBlanks, calDays, calY, calM, calMonthStr,
       trackmanTotal, foresightTotal, trackmanThisMonth, foresightThisMonth
@@ -1301,16 +1414,55 @@ export default function App() {
     setShowPassword(false);
   };
 
+  // Language dropdown component
+  const LANGUAGE_OPTIONS = [
+    { key: 'th', label: 'TH', name: 'ไทย', flag: '🇹🇭' },
+    { key: 'en', label: 'EN', name: 'English', flag: '🇬🇧' },
+    { key: 'ja', label: 'JP', name: '日本語', flag: '🇯🇵' },
+    { key: 'ru', label: 'RU', name: 'Русский', flag: '🇷🇺' },
+    { key: 'zh', label: 'ZH', name: '中文', flag: '🇨🇳' },
+  ];
+  const LanguageDropdown = ({ className = '' }) => (
+    <div className={`relative ${className}`}>
+      <button
+        onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white ring-1 ring-gray-200 hover:ring-gray-300 text-sm font-medium text-gray-600 transition-all"
+      >
+        <Globe size={14} />
+        {LANGUAGE_OPTIONS.find(l => l.key === lang)?.flag} {LANGUAGE_OPTIONS.find(l => l.key === lang)?.label || 'TH'}
+        <ChevronDown size={12} className={`transition-transform ${langDropdownOpen ? 'rotate-180' : ''}`} />
+      </button>
+      {langDropdownOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setLangDropdownOpen(false)} />
+          <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-lg ring-1 ring-gray-200 py-1 z-50 min-w-[160px]">
+            {LANGUAGE_OPTIONS.map(l => (
+              <button
+                key={l.key}
+                onClick={() => { setLang(l.key); setLangDropdownOpen(false); }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
+                  lang === l.key ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <span>{l.flag}</span>
+                <span>{l.name}</span>
+                <span className="ml-auto text-xs text-gray-400">{l.label}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   // ---------------- LOGIN / REGISTER PAGE ----------------
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-[#f8f8fa] flex items-center justify-center p-4 font-sans">
         <div className="w-full max-w-md">
           {/* Language Switcher */}
-          <div className="flex justify-center gap-1 mb-4">
-            {[{ key: 'th', label: 'TH' }, { key: 'en', label: 'EN' }, { key: 'ja', label: 'JP' }].map(l => (
-              <button key={l.key} onClick={() => setLang(l.key)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${lang === l.key ? 'bg-gray-900 text-white shadow-sm' : 'bg-white text-gray-500 ring-1 ring-gray-200 hover:ring-gray-300'}`}>{l.label}</button>
-            ))}
+          <div className="flex justify-center mb-4">
+            <LanguageDropdown />
           </div>
           {/* Logo */}
           <div className="text-center mb-8">
@@ -1485,11 +1637,7 @@ export default function App() {
 
         {/* Top Header - User Info & Logout */}
         <div className="flex justify-end mb-1 gap-2">
-          <div className="bg-white rounded-full shadow-sm ring-1 ring-gray-200 p-1 flex items-center gap-0.5">
-            {[{ key: 'th', label: 'TH' }, { key: 'en', label: 'EN' }, { key: 'ja', label: 'JP' }].map(l => (
-              <button key={l.key} onClick={() => setLang(l.key)} className={`px-2.5 py-1.5 rounded-full text-xs font-semibold transition-all ${lang === l.key ? 'bg-gray-900 text-white' : 'text-gray-400 hover:text-gray-600'}`}>{l.label}</button>
-            ))}
-          </div>
+          <LanguageDropdown />
           <div className="bg-white rounded-full shadow-sm ring-1 ring-gray-200 p-1 flex items-center gap-1">
             <label className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium cursor-pointer group ${
               role === 'admin' ? 'bg-gray-900 text-white' :
@@ -1579,6 +1727,18 @@ export default function App() {
                 }`}
               >
                 <GraduationCap size={16} /> {t('coachSchedule')}
+              </button>
+            )}
+            {role === 'coach' && (
+              <button
+                onClick={() => { setViewMode('coach-clients'); setSelectedClient(null); }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  viewMode === 'coach-clients'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Users size={16} /> {t('myClients')}
               </button>
             )}
             {role === 'admin' && (
@@ -1977,6 +2137,74 @@ export default function App() {
                 </div>
               </div>
             )}
+
+            {/* Customer Learning History */}
+            {role === 'customer' && currentUser && (() => {
+              const myNotes = lessonNotes
+                .filter(n => n.customerPhone === currentUser.phone)
+                .sort((a, b) => a.lessonNumber - b.lessonNumber);
+              return (
+                <div className="card p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <BookOpen size={18} className="text-purple-500" /> {t('learningHistory')}
+                  </h2>
+                  {myNotes.length > 0 ? (
+                    <div className="space-y-4">
+                      {myNotes.map(note => (
+                        <div key={note.id} className="p-4 rounded-xl ring-1 ring-gray-200 bg-white hover:ring-gray-300 transition-all">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="bg-purple-100 text-purple-700 text-xs font-medium px-2 py-0.5 rounded-full">
+                                {t('lessonNumber')} {note.lessonNumber}
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                {new Date(note.date).toLocaleDateString(currentLocale, { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </span>
+                            </div>
+                            <span className="text-xs text-purple-600 font-medium flex items-center gap-1">
+                              <GraduationCap size={12} /> {note.coachName}
+                            </span>
+                          </div>
+                          {note.topic && (
+                            <div className="mb-1">
+                              <span className="text-xs text-gray-400">{t('topicTaught')}:</span>
+                              <span className="text-sm text-gray-800 ml-1.5 font-medium">{note.topic}</span>
+                            </div>
+                          )}
+                          {note.homework && (
+                            <div className="mb-1">
+                              <span className="text-xs text-gray-400">{t('homeworkAssigned')}:</span>
+                              <span className="text-sm text-gray-600 ml-1.5">{note.homework}</span>
+                            </div>
+                          )}
+                          {note.notes && (
+                            <div className="text-xs text-gray-500 mt-1">{note.notes}</div>
+                          )}
+                          {note.attachments && note.attachments.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {note.attachments.map((att, i) => (
+                                att.type.startsWith('image/') ? (
+                                  <img key={i} src={att.dataUrl} alt={att.name} className="w-16 h-16 rounded-lg object-cover ring-1 ring-gray-200 cursor-pointer hover:ring-purple-300 transition-all" onClick={() => window.open(att.dataUrl)} />
+                                ) : (
+                                  <a key={i} href={att.dataUrl} download={att.name} className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-lg hover:bg-blue-100 transition-colors">
+                                    <Paperclip size={12} /> {att.name}
+                                  </a>
+                                )
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-300">
+                      <BookOpen size={32} className="mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">{t('noLearningHistory')}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -2061,7 +2289,11 @@ export default function App() {
             })()}
 
             {/* Summary - compact */}
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+              <div className="card p-4 text-center">
+                <div className="text-2xl font-semibold text-purple-600">{coachSchedule.uniqueClients}</div>
+                <div className="text-[11px] text-gray-400 mt-0.5">{t('uniqueClients')}</div>
+              </div>
               <div className="card p-4 text-center">
                 <div className="text-2xl font-semibold text-gray-900">{coachSchedule.today.length}</div>
                 <div className="text-[11px] text-gray-400 mt-0.5">{t('todaySchedule')}</div>
@@ -2201,12 +2433,20 @@ export default function App() {
                           {b.email && <span className="flex items-center gap-1"><Mail size={10} /> {b.email}</span>}
                         </div>
                       </div>
-                      <div className="shrink-0">
+                      <div className="shrink-0 flex items-center gap-2">
                         <span className={`badge text-[11px] ${
                           b.status === 'checked-in' ? 'badge-checked-in' : 'badge-booked'
                         }`}>
                           {b.status === 'checked-in' ? t('statusCheckedIn') : t('waitingCustomer')}
                         </span>
+                        {b.withCoach && (() => {
+                          const note = getLessonNotesForBooking(b.id);
+                          return (
+                            <button onClick={() => openLessonNoteModal(b, note || null)} className={`p-1.5 rounded-lg transition-colors ${note ? 'text-purple-500 hover:bg-purple-50' : 'text-gray-300 hover:text-purple-600 hover:bg-purple-50'}`} title={note ? t('editNotes') : t('addNotes')}>
+                              <FileText size={14} />
+                            </button>
+                          );
+                        })()}
                       </div>
                     </div>
                   ))}
@@ -2245,6 +2485,14 @@ export default function App() {
                             <span className="text-xs bg-gray-900 text-white px-2 py-0.5 rounded-full font-medium">{t('waitingCustomer')}</span>
                           )}
                           {b.phone && <a href={`tel:${b.phone}`} className="p-1.5 rounded-lg text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-colors"><Phone size={14} /></a>}
+                          {b.withCoach && (() => {
+                            const note = getLessonNotesForBooking(b.id);
+                            return (
+                              <button onClick={() => openLessonNoteModal(b, note || null)} className={`p-1.5 rounded-lg transition-colors ${note ? 'text-purple-500 hover:text-purple-700 hover:bg-purple-50' : 'text-gray-300 hover:text-purple-600 hover:bg-purple-50'}`} title={note ? t('editNotes') : t('addNotes')}>
+                                <FileText size={14} />
+                              </button>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>
@@ -2302,6 +2550,14 @@ export default function App() {
                       <div className="text-xs text-gray-400 w-20 shrink-0">{b.time.split(' - ')[0]}-{b.time.split(' - ')[1]}</div>
                       <div className="flex-1 min-w-0 text-sm text-gray-600 truncate">{b.customerName}</div>
                       <div className="text-xs text-gray-300 shrink-0">{b.machine}</div>
+                      {b.withCoach && (() => {
+                        const note = getLessonNotesForBooking(b.id);
+                        return (
+                          <button onClick={() => openLessonNoteModal(b, note || null)} className={`p-1 rounded shrink-0 transition-colors ${note ? 'text-purple-500 hover:bg-purple-50' : 'text-gray-300 hover:text-purple-600 hover:bg-gray-100'}`} title={note ? t('editNotes') : t('addNotes')}>
+                            <FileText size={13} />
+                          </button>
+                        );
+                      })()}
                     </div>
                   ))}
                   {coachSchedule.past.length > 10 && (
@@ -2312,6 +2568,257 @@ export default function App() {
             )}
           </div>
         )}
+
+        {/* Coach Clients View */}
+        {viewMode === 'coach-clients' && role === 'coach' && (() => {
+          const myBookings = bookings.filter(b => b.withCoach && b.coachName === selectedRoleCoach);
+          // Build unique clients list with stats
+          const clientMap = {};
+          myBookings.forEach(b => {
+            if (!clientMap[b.phone]) {
+              clientMap[b.phone] = { phone: b.phone, name: b.customerName, email: b.email || '', sessions: 0, lastDate: b.date, dates: [] };
+            }
+            clientMap[b.phone].sessions++;
+            clientMap[b.phone].dates.push(b.date);
+            if (b.date > clientMap[b.phone].lastDate) { clientMap[b.phone].lastDate = b.date; clientMap[b.phone].name = b.customerName; }
+          });
+          const clientList = Object.values(clientMap).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
+          const totalNotes = lessonNotes.filter(n => n.coachName === selectedRoleCoach).length;
+
+          // If a client is selected, show their detail
+          if (selectedClient) {
+            const clientNotes = lessonNotes
+              .filter(n => n.customerPhone === selectedClient.phone && n.coachName === selectedRoleCoach)
+              .sort((a, b) => a.lessonNumber - b.lessonNumber);
+            const clientBookings = myBookings.filter(b => b.phone === selectedClient.phone).sort((a, b) => b.date.localeCompare(a.date));
+
+            return (
+              <div className="space-y-5">
+                {/* Back + Client Header */}
+                <div className="card p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <button onClick={() => setSelectedClient(null)} className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+                      <ChevronLeft size={20} />
+                    </button>
+                    <div className="flex-1">
+                      <h2 className="text-lg font-semibold text-gray-900">{selectedClient.name}</h2>
+                      <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
+                        <span className="flex items-center gap-1"><Phone size={11} /> {selectedClient.phone}</span>
+                        {selectedClient.email && <span className="flex items-center gap-1"><Mail size={11} /> {selectedClient.email}</span>}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => openNewNoteForClient(selectedClient.phone, selectedClient.name, selectedRoleCoach)}
+                      className="flex items-center gap-2 px-4 py-2 btn-primary text-sm"
+                    >
+                      <Plus size={16} /> {t('addNewNote')}
+                    </button>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-purple-50 rounded-xl p-3 text-center">
+                      <div className="text-xl font-semibold text-purple-700">{clientNotes.length}</div>
+                      <div className="text-[11px] text-purple-500">{t('lessonNotes')}</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-3 text-center">
+                      <div className="text-xl font-semibold text-gray-700">{clientBookings.length}</div>
+                      <div className="text-[11px] text-gray-500">{t('sessions')}</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-3 text-center">
+                      <div className="text-sm font-semibold text-gray-700">{clientBookings[0] ? new Date(clientBookings[0].date).toLocaleDateString(currentLocale, { day: 'numeric', month: 'short' }) : '-'}</div>
+                      <div className="text-[11px] text-gray-500">{t('lastLesson')}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lesson Notes Log */}
+                <div className="card p-5">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <FileText size={15} className="text-purple-500" /> {t('clientLessonLog')}
+                  </h3>
+                  {clientNotes.length > 0 ? (
+                    <div className="space-y-4">
+                      {clientNotes.map(note => (
+                        <div key={note.id} className="p-4 rounded-xl ring-1 ring-gray-200 bg-white hover:ring-purple-200 transition-all">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="bg-purple-100 text-purple-700 text-xs font-semibold w-8 h-8 rounded-lg flex items-center justify-center">
+                                {note.lessonNumber}
+                              </span>
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">{t('lessonNumber')} {note.lessonNumber}</div>
+                                <div className="text-[11px] text-gray-400">
+                                  {new Date(note.date).toLocaleDateString(currentLocale, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => openLessonNoteModal({ id: note.bookingId, phone: note.customerPhone, customerName: note.customerName, coachName: note.coachName, date: note.date }, note)}
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-colors"
+                              title={t('editNotes')}
+                            >
+                              <Pencil size={14} />
+                            </button>
+                          </div>
+                          {note.topic && (
+                            <div className="mb-1.5 flex items-start gap-2">
+                              <span className="text-xs text-gray-400 w-16 shrink-0 pt-0.5">{t('topicTaught')}</span>
+                              <span className="text-sm text-gray-800 font-medium">{note.topic}</span>
+                            </div>
+                          )}
+                          {note.homework && (
+                            <div className="mb-1.5 flex items-start gap-2">
+                              <span className="text-xs text-gray-400 w-16 shrink-0 pt-0.5">{t('homeworkAssigned')}</span>
+                              <span className="text-sm text-gray-600">{note.homework}</span>
+                            </div>
+                          )}
+                          {note.notes && (
+                            <div className="text-xs text-gray-500 mt-1.5 bg-gray-50 rounded-lg p-2.5">{note.notes}</div>
+                          )}
+                          {note.attachments && note.attachments.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {note.attachments.map((att, i) => (
+                                att.type.startsWith('image/') ? (
+                                  <img key={i} src={att.dataUrl} alt={att.name} className="w-20 h-20 rounded-lg object-cover ring-1 ring-gray-200 cursor-pointer hover:ring-purple-300 transition-all" onClick={() => window.open(att.dataUrl)} />
+                                ) : (
+                                  <a key={i} href={att.dataUrl} download={att.name} className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-lg hover:bg-blue-100 transition-colors">
+                                    <Paperclip size={12} /> {att.name}
+                                  </a>
+                                )
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-300">
+                      <FileText size={28} className="mx-auto mb-2 opacity-50" />
+                      <p className="text-sm mb-3">{t('noNotesYet')}</p>
+                      <button
+                        onClick={() => openNewNoteForClient(selectedClient.phone, selectedClient.name, selectedRoleCoach)}
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors font-medium"
+                      >
+                        <Plus size={14} /> {t('addNewNote')}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Booking History for this client */}
+                {clientBookings.length > 0 && (
+                  <div className="card p-5">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <Calendar size={15} className="text-gray-400" /> {t('teachingHistory')}
+                      <span className="text-xs text-gray-400 font-normal ml-auto">{clientBookings.length} {t('sessions')}</span>
+                    </h3>
+                    <div className="space-y-1">
+                      {clientBookings.slice(0, 20).map(b => {
+                        const note = getLessonNotesForBooking(b.id);
+                        return (
+                          <div key={b.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div className="text-xs text-gray-400 w-16 shrink-0">
+                              {new Date(b.date).toLocaleDateString(currentLocale, { day: 'numeric', month: 'short' })}
+                            </div>
+                            <div className="text-xs text-gray-400 w-20 shrink-0">{b.time}</div>
+                            <div className="flex-1 min-w-0 text-xs text-gray-500 truncate">{b.machine}</div>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded ${b.status === 'checked-in' ? 'bg-emerald-50 text-emerald-600' : b.status === 'no-show' ? 'bg-gray-100 text-gray-400' : 'bg-amber-50 text-amber-600'}`}>
+                              {b.status === 'checked-in' ? t('statusCheckedIn') : b.status === 'no-show' ? t('statusNoShow') : t('statusBooked')}
+                            </span>
+                            {note && <span className="w-2 h-2 rounded-full bg-purple-400 shrink-0" title={t('lessonNotes')}></span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          // Client list view
+          return (
+            <div className="space-y-5">
+              {/* Summary cards */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="card p-4 text-center">
+                  <div className="text-2xl font-semibold text-purple-600">{clientList.length}</div>
+                  <div className="text-[11px] text-gray-400 mt-0.5">{t('totalClients')}</div>
+                </div>
+                <div className="card p-4 text-center">
+                  <div className="text-2xl font-semibold text-gray-900">{totalNotes}</div>
+                  <div className="text-[11px] text-gray-400 mt-0.5">{t('totalLessons')}</div>
+                </div>
+                <div className="card p-4 text-center">
+                  <div className="text-2xl font-semibold text-gray-900">{myBookings.length}</div>
+                  <div className="text-[11px] text-gray-400 mt-0.5">{t('sessions')}</div>
+                </div>
+              </div>
+
+              {/* Client Cards */}
+              {clientList.length > 0 ? (
+                <div className="space-y-3">
+                  {clientList.map(client => {
+                    const clientNoteCount = lessonNotes.filter(n => n.customerPhone === client.phone && n.coachName === selectedRoleCoach).length;
+                    const latestNote = lessonNotes
+                      .filter(n => n.customerPhone === client.phone && n.coachName === selectedRoleCoach)
+                      .sort((a, b) => b.lessonNumber - a.lessonNumber)[0];
+                    return (
+                      <div
+                        key={client.phone}
+                        className="card p-4 hover:ring-purple-200 cursor-pointer transition-all group"
+                        onClick={() => setSelectedClient(client)}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 font-semibold text-lg shrink-0 group-hover:bg-purple-200 transition-colors">
+                            {(client.name || '?').charAt(0)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-gray-900">{client.name}</span>
+                              {clientNoteCount > 0 && (
+                                <span className="bg-purple-100 text-purple-600 text-[10px] font-medium px-1.5 py-0.5 rounded-full">
+                                  {clientNoteCount} {t('lessonNotes')}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
+                              <span className="flex items-center gap-1"><Phone size={10} /> {client.phone}</span>
+                              <span>{t('lessonsCount')} {client.sessions} {t('timesUnit')}</span>
+                              <span>{t('lastLesson')} {new Date(client.lastDate).toLocaleDateString(currentLocale, { day: 'numeric', month: 'short' })}</span>
+                            </div>
+                            {latestNote && latestNote.topic && (
+                              <div className="text-xs text-gray-500 mt-1 truncate">
+                                <span className="text-purple-500">{t('lessonNumber')}{latestNote.lessonNumber}:</span> {latestNote.topic}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openNewNoteForClient(client.phone, client.name, selectedRoleCoach); }}
+                              className="p-2 rounded-lg text-gray-300 hover:text-purple-600 hover:bg-purple-50 transition-colors"
+                              title={t('addNewNote')}
+                            >
+                              <Plus size={18} />
+                            </button>
+                            <ChevronRight size={18} className="text-gray-300 group-hover:text-purple-400 transition-colors" />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="card p-12 text-center">
+                  <Users size={40} className="mx-auto mb-3 text-gray-200" />
+                  <p className="text-gray-400 text-sm font-medium">{t('noClients')}</p>
+                  <p className="text-gray-300 text-xs mt-1">{t('noClientsDesc')}</p>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Reports View */}
         {viewMode === 'reports' && role === 'admin' && (
@@ -3697,6 +4204,90 @@ export default function App() {
       )}
 
       {/* Coach Profile Modal */}
+      {/* Lesson Note Modal */}
+      {isLessonNoteModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsLessonNoteModalOpen(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <FileText size={18} className="text-purple-500" />
+                  {editingLessonNote ? t('editNotes') : t('addNotes')}
+                </h3>
+                <button onClick={() => setIsLessonNoteModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1.5 rounded-xl hover:bg-gray-100 transition-colors">
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Customer info header */}
+              <div className="bg-gray-50 rounded-xl p-3 mb-4 text-sm">
+                <div className="font-medium text-gray-900">{lessonNoteForm.customerName}</div>
+                <div className="text-xs text-gray-400">{lessonNoteForm.date} &middot; {t('lessonNumber')} {lessonNoteForm.lessonNumber}</div>
+              </div>
+
+              {/* Lesson Number */}
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-600 mb-1.5 block">{t('lessonNumber')}</label>
+                <input type="number" min="1" className="input-field" value={lessonNoteForm.lessonNumber}
+                  onChange={e => setLessonNoteForm({...lessonNoteForm, lessonNumber: parseInt(e.target.value) || 1})} />
+              </div>
+
+              {/* Topic */}
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-600 mb-1.5 block">{t('topicTaught')}</label>
+                <input type="text" className="input-field" placeholder={t('topicPlaceholder')} value={lessonNoteForm.topic}
+                  onChange={e => setLessonNoteForm({...lessonNoteForm, topic: e.target.value})} />
+              </div>
+
+              {/* Homework */}
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-600 mb-1.5 block">{t('homeworkAssigned')}</label>
+                <input type="text" className="input-field" placeholder={t('homeworkPlaceholder')} value={lessonNoteForm.homework}
+                  onChange={e => setLessonNoteForm({...lessonNoteForm, homework: e.target.value})} />
+              </div>
+
+              {/* General Notes */}
+              <div className="mb-4">
+                <label className="text-sm font-medium text-gray-600 mb-1.5 block">{t('generalNotes')}</label>
+                <textarea className="input-field min-h-[80px]" placeholder={t('notesPlaceholder')} value={lessonNoteForm.notes}
+                  onChange={e => setLessonNoteForm({...lessonNoteForm, notes: e.target.value})} />
+              </div>
+
+              {/* Attachments */}
+              <div className="mb-5">
+                <label className="text-sm font-medium text-gray-600 mb-1.5 block">{t('attachments')}</label>
+                {lessonNoteForm.attachments.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {lessonNoteForm.attachments.map((att, i) => (
+                      <div key={i} className="flex items-center gap-1.5 bg-gray-50 rounded-lg px-2.5 py-1.5 ring-1 ring-gray-200">
+                        {att.type.startsWith('image/') ? (
+                          <img src={att.dataUrl} alt={att.name} className="w-8 h-8 rounded object-cover" />
+                        ) : (
+                          <Paperclip size={14} className="text-gray-400" />
+                        )}
+                        <span className="text-xs text-gray-600 max-w-[100px] truncate">{att.name}</span>
+                        <button onClick={() => removeLessonNoteAttachment(i)} className="text-gray-400 hover:text-red-500 p-0.5">
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <label className="inline-flex items-center gap-2 text-sm text-purple-600 cursor-pointer hover:text-purple-700 transition-colors">
+                  <Paperclip size={14} /> {t('addAttachment')}
+                  <input type="file" accept="image/*,.pdf,.doc,.docx,.mp4,.mov" className="hidden" onChange={e => { handleLessonNoteAttachment(e.target.files[0]); e.target.value = ''; }} />
+                </label>
+              </div>
+
+              {/* Save Button */}
+              <button onClick={handleSaveLessonNote} className="w-full py-3 btn-primary flex items-center justify-center gap-2">
+                {t('saveNotes')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {viewingCoach && (
         <div className="modal-overlay" onClick={() => setViewingCoach(null)}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
