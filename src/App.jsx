@@ -2302,14 +2302,18 @@ export default function App() {
             {/* Booking Table */}
             <div className="card overflow-hidden">
               <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full min-w-[800px] text-left border-collapse">
+                <table className="w-full text-left border-collapse table-fixed">
+                  <colgroup>
+                    <col className="w-[72px] md:w-[90px]" />
+                    {activeBayNames.map((m) => <col key={m} />)}
+                  </colgroup>
                   <thead>
                     <tr className="border-b border-gray-100">
-                      <th className="px-4 py-3.5 font-medium text-gray-500 text-sm w-32 border-r border-gray-100 text-center sticky left-0 bg-white z-10">
-                        <Clock size={14} className="inline mr-1.5 -mt-0.5"/> {t('time')}
+                      <th className="px-2 py-3 font-medium text-gray-500 text-xs md:text-sm border-r border-gray-100 text-center sticky left-0 bg-white z-10">
+                        <Clock size={13} className="inline mr-1 -mt-0.5"/> {t('time')}
                       </th>
                       {activeBayNames.map((machine) => (
-                        <th key={machine} className="px-4 py-3.5 font-medium text-gray-800 text-center text-sm">
+                        <th key={machine} className="px-1.5 py-3 font-medium text-gray-800 text-center text-xs md:text-sm truncate">
                           {machine}
                         </th>
                       ))}
@@ -2318,17 +2322,17 @@ export default function App() {
                   <tbody>
                     {timeSlots.map((time) => (
                       <tr key={time} className="border-b border-gray-50 table-row-hover">
-                        <td className="px-4 py-3 font-medium text-gray-500 text-sm border-r border-gray-100 text-center sticky left-0 bg-white z-10">
-                          {time}
+                        <td className="px-1.5 py-2 font-medium text-gray-500 text-[11px] md:text-sm border-r border-gray-100 text-center sticky left-0 bg-white z-10 whitespace-nowrap">
+                          {time.split(' - ')[0]}
                         </td>
                         {activeBayNames.map((machine) => {
                           const booking = getBooking(machine, time);
                           return (
-                            <td key={`${machine}-${time}`} className="p-2 text-center">
+                            <td key={`${machine}-${time}`} className="p-1 md:p-1.5 text-center">
                               {booking ? (
                                 <div
                                   onClick={() => openManageModal(booking)}
-                                  className={`p-2.5 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all duration-200 group relative min-h-[66px] cursor-pointer ${
+                                  className={`p-1.5 md:p-2 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all duration-200 group relative min-h-[60px] cursor-pointer overflow-hidden ${
                                     role === 'admin'
                                       ? getStatusColor(booking.status)
                                       : (role === 'coach' && booking.withCoach && booking.coachName === selectedRoleCoach)
@@ -2340,21 +2344,21 @@ export default function App() {
                                 >
                                   {role === 'admin' ? (
                                     <>
-                                      <span className="font-medium text-sm flex items-center gap-1">
-                                        {booking.status === 'checked-in' && <CheckCircle2 size={14} className="text-emerald-500"/>}
-                                        {booking.status === 'no-show' && <XCircle size={14} className="text-gray-400"/>}
-                                        {booking.customerName}
+                                      <span className="font-medium text-xs md:text-sm flex items-center gap-1 truncate max-w-full">
+                                        {booking.status === 'checked-in' && <CheckCircle2 size={12} className="text-emerald-500 shrink-0"/>}
+                                        {booking.status === 'no-show' && <XCircle size={12} className="text-gray-400 shrink-0"/>}
+                                        <span className="truncate">{booking.customerName}</span>
                                       </span>
-                                      <span className="text-[11px] text-gray-400">{booking.phone}</span>
-                                      <div className="flex items-center gap-1 mt-0.5 flex-wrap justify-center">
-                                        <span className={`badge text-[10px] ${
+                                      <span className="text-[10px] text-gray-400 truncate max-w-full">{booking.phone}</span>
+                                      <div className="flex items-center gap-0.5 mt-0.5 flex-wrap justify-center">
+                                        <span className={`badge text-[9px] md:text-[10px] ${
                                           booking.status === 'booked' ? 'badge-booked' :
                                           booking.status === 'checked-in' ? 'badge-checked-in' : 'badge-no-show'
                                         }`}>
                                           {booking.status === 'booked' ? t('statusBooked') : booking.status === 'checked-in' ? t('statusCheckedIn') : t('statusNoShow')}
                                         </span>
-                                        {booking.usedQuota && <span className="badge badge-member text-[10px]"><Award size={10}/> Member</span>}
-                                        {booking.withCoach && <span className="badge badge-coach text-[10px]"><GraduationCap size={10} /> {booking.coachName || t('coach')}</span>}
+                                        {booking.usedQuota && <span className="badge badge-member text-[9px]"><Award size={9}/> M</span>}
+                                        {booking.withCoach && <span className="badge badge-coach text-[9px]"><GraduationCap size={9} /> <span className="truncate max-w-[50px]">{booking.coachName || t('coach')}</span></span>}
                                       </div>
                                     </>
                                   ) : (role === 'coach' && booking.withCoach && booking.coachName === selectedRoleCoach) ? (
@@ -2363,9 +2367,9 @@ export default function App() {
                                         {booking.status === 'checked-in' && <CheckCircle2 size={14} className="text-emerald-500"/>}
                                         {booking.customerName}
                                       </span>
-                                      <span className="text-[11px] text-gray-400">{booking.phone}</span>
-                                      <div className="flex items-center gap-1 mt-0.5 flex-wrap justify-center">
-                                        <span className={`badge text-[10px] ${
+                                      <span className="text-[10px] text-gray-400 truncate max-w-full">{booking.phone}</span>
+                                      <div className="flex items-center gap-0.5 mt-0.5 flex-wrap justify-center">
+                                        <span className={`badge text-[9px] ${
                                           booking.status === 'booked' ? 'badge-booked' :
                                           booking.status === 'checked-in' ? 'badge-checked-in' : 'badge-no-show'
                                         }`}>
@@ -2375,26 +2379,25 @@ export default function App() {
                                     </>
                                   ) : (
                                     currentUser && booking.phone === currentUser.phone ? (
-                                      <div className="flex flex-col items-center gap-1">
-                                        <span className="text-emerald-600 font-medium text-sm">{t('myBooking')}</span>
-                                        <span className="text-[10px] text-gray-400">{booking.time.split(' - ')[0]}</span>
-                                        {booking.withCoach && <span className="badge badge-coach text-[10px]"><GraduationCap size={10} /> {booking.coachName || t('hasCoach')}</span>}
+                                      <div className="flex flex-col items-center gap-0.5 overflow-hidden">
+                                        <span className="text-emerald-600 font-medium text-xs">{t('myBooking')}</span>
+                                        {booking.withCoach && <span className="badge badge-coach text-[9px] truncate max-w-full"><GraduationCap size={9} /> {booking.coachName || t('hasCoach')}</span>}
                                       </div>
                                     ) : (
                                       <div className="flex flex-col items-center gap-1">
-                                        <span className="text-gray-300 font-medium text-sm">{t('notAvailable')}</span>
+                                        <span className="text-gray-300 font-medium text-xs">{t('notAvailable')}</span>
                                       </div>
                                     )
                                   )}
                                 </div>
                               ) : isSlotPassed(currentDate, time) ? (
-                                <div className="p-2.5 text-center">
-                                  <span className="text-xs text-gray-300 font-medium">{t('pastSlot')}</span>
+                                <div className="p-1.5 md:p-2 text-center min-h-[60px] flex items-center justify-center">
+                                  <span className="text-[10px] md:text-xs text-gray-300 font-medium">{t('pastSlot')}</span>
                                 </div>
                               ) : (
                                 <div
                                   onClick={() => openBookingModal(machine, time)}
-                                  className="slot-available p-2.5 group"
+                                  className="slot-available p-1.5 md:p-2 group min-h-[60px]"
                                 >
                                   <span className="text-sm font-medium group-hover:hidden">{t('available')}</span>
                                   <span className="text-sm font-medium hidden group-hover:block">{t('book')}</span>
