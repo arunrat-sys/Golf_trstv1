@@ -378,6 +378,15 @@ const TRANSLATIONS = {
   noClientsDesc: { th: 'เมื่อมีการจองเรียนกับคุณ ลูกค้าจะแสดงที่นี่', en: 'Clients will appear here when they book lessons with you', ja: 'レッスン予約が入ると生徒が表示されます', ru: 'Клиенты появятся после бронирования уроков', zh: '当学员预约您的课程后将显示在这里' },
   backToList: { th: 'กลับ', en: 'Back', ja: '戻る', ru: 'Назад', zh: '返回' },
   lessonOf: { th: 'ของ', en: 'for', ja: 'の', ru: 'для', zh: '的' },
+
+  // ---- Customer My Lessons Page ----
+  myLessons: { th: 'บทเรียนของฉัน', en: 'My Lessons', ja: 'マイレッスン', ru: 'Мои уроки', zh: '我的课程' },
+  completedLessons: { th: 'เรียนแล้ว', en: 'Completed', ja: '受講済み', ru: 'Завершено', zh: '已完成' },
+  myCoaches: { th: 'โค้ชของฉัน', en: 'My Coaches', ja: '担当コーチ', ru: 'Мои тренеры', zh: '我的教练' },
+  allLessonsFromCoach: { th: 'บทเรียนจาก', en: 'Lessons from', ja: 'レッスン:', ru: 'Уроки от', zh: '来自' },
+  noLessonsYet: { th: 'คุณยังไม่มีบทเรียน', en: 'No lessons yet', ja: 'レッスンなし', ru: 'Уроков пока нет', zh: '暂无课程' },
+  noLessonsDesc: { th: 'เมื่อโค้ชบันทึกการสอน จะแสดงที่นี่', en: 'Lessons will appear here when your coach adds notes', ja: 'コーチがノートを追加すると表示されます', ru: 'Появится после добавления заметок тренером', zh: '当教练添加笔记后将显示在这里' },
+  viewAll: { th: 'ดูทั้งหมด', en: 'View All', ja: 'すべて表示', ru: 'Показать все', zh: '查看全部' },
 };
 const DEFAULT_COACHES = [
   { id: 1, name: 'โค้ชเอ', price: 2000, education: 'PGA Teaching Professional', expertise: 'Short Game, Putting', bio: 'ประสบการณ์สอน 10 ปี เน้นเทคนิค Short Game และ Putting ให้ผลลัพธ์ที่วัดได้จริง', avatar: '', active: true },
@@ -1714,7 +1723,19 @@ export default function App() {
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
-                <Users size={16} /> {t('membersAndCourses')}
+                <ShoppingCart size={16} /> {t('membersAndCourses')}
+              </button>
+            )}
+            {role === 'customer' && (
+              <button
+                onClick={() => setViewMode('my-lessons')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  viewMode === 'my-lessons'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <BookOpen size={16} /> {t('myLessons')}
               </button>
             )}
             {role === 'coach' && (
@@ -2138,75 +2159,141 @@ export default function App() {
               </div>
             )}
 
-            {/* Customer Learning History */}
-            {role === 'customer' && currentUser && (() => {
-              const myNotes = lessonNotes
-                .filter(n => n.customerPhone === currentUser.phone)
-                .sort((a, b) => a.lessonNumber - b.lessonNumber);
-              return (
-                <div className="card p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <BookOpen size={18} className="text-purple-500" /> {t('learningHistory')}
-                  </h2>
-                  {myNotes.length > 0 ? (
-                    <div className="space-y-4">
-                      {myNotes.map(note => (
-                        <div key={note.id} className="p-4 rounded-xl ring-1 ring-gray-200 bg-white hover:ring-gray-300 transition-all">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="bg-purple-100 text-purple-700 text-xs font-medium px-2 py-0.5 rounded-full">
-                                {t('lessonNumber')} {note.lessonNumber}
-                              </span>
-                              <span className="text-xs text-gray-400">
-                                {new Date(note.date).toLocaleDateString(currentLocale, { day: 'numeric', month: 'short', year: 'numeric' })}
-                              </span>
-                            </div>
-                            <span className="text-xs text-purple-600 font-medium flex items-center gap-1">
-                              <GraduationCap size={12} /> {note.coachName}
-                            </span>
-                          </div>
-                          {note.topic && (
-                            <div className="mb-1">
-                              <span className="text-xs text-gray-400">{t('topicTaught')}:</span>
-                              <span className="text-sm text-gray-800 ml-1.5 font-medium">{note.topic}</span>
-                            </div>
-                          )}
-                          {note.homework && (
-                            <div className="mb-1">
-                              <span className="text-xs text-gray-400">{t('homeworkAssigned')}:</span>
-                              <span className="text-sm text-gray-600 ml-1.5">{note.homework}</span>
-                            </div>
-                          )}
-                          {note.notes && (
-                            <div className="text-xs text-gray-500 mt-1">{note.notes}</div>
-                          )}
-                          {note.attachments && note.attachments.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {note.attachments.map((att, i) => (
-                                att.type.startsWith('image/') ? (
-                                  <img key={i} src={att.dataUrl} alt={att.name} className="w-16 h-16 rounded-lg object-cover ring-1 ring-gray-200 cursor-pointer hover:ring-purple-300 transition-all" onClick={() => window.open(att.dataUrl)} />
-                                ) : (
-                                  <a key={i} href={att.dataUrl} download={att.name} className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-lg hover:bg-blue-100 transition-colors">
-                                    <Paperclip size={12} /> {att.name}
-                                  </a>
-                                )
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-300">
-                      <BookOpen size={32} className="mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">{t('noLearningHistory')}</p>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
           </div>
         )}
+
+        {/* Customer My Lessons View */}
+        {viewMode === 'my-lessons' && role === 'customer' && currentUser && (() => {
+          const myNotes = lessonNotes
+            .filter(n => n.customerPhone === currentUser.phone)
+            .sort((a, b) => b.lessonNumber - a.lessonNumber);
+
+          // Group notes by coach
+          const byCoach = {};
+          myNotes.forEach(n => {
+            if (!byCoach[n.coachName]) byCoach[n.coachName] = [];
+            byCoach[n.coachName].push(n);
+          });
+          const coachList = Object.keys(byCoach);
+
+          // Also get booking history for this customer
+          const myBookings = bookings
+            .filter(b => b.phone === currentUser.phone && b.withCoach)
+            .sort((a, b) => b.date.localeCompare(a.date));
+
+          return (
+            <div className="space-y-5">
+
+              {/* Summary */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="card p-4 text-center">
+                  <div className="text-2xl font-semibold text-purple-600">{myNotes.length}</div>
+                  <div className="text-[11px] text-gray-400 mt-0.5">{t('completedLessons')}</div>
+                </div>
+                <div className="card p-4 text-center">
+                  <div className="text-2xl font-semibold text-gray-900">{coachList.length}</div>
+                  <div className="text-[11px] text-gray-400 mt-0.5">{t('myCoaches')}</div>
+                </div>
+                <div className="card p-4 text-center">
+                  <div className="text-2xl font-semibold text-gray-900">{myBookings.length}</div>
+                  <div className="text-[11px] text-gray-400 mt-0.5">{t('sessions')}</div>
+                </div>
+              </div>
+
+              {myNotes.length > 0 ? (
+                <>
+                  {/* Notes grouped by coach */}
+                  {coachList.map(coachName => {
+                    const coachNotes = byCoach[coachName].sort((a, b) => a.lessonNumber - b.lessonNumber);
+                    const coachInfo = getCoachInfo(coachName);
+                    return (
+                      <div key={coachName} className="card p-5">
+                        {/* Coach header */}
+                        <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
+                          <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
+                            <GraduationCap size={18} className="text-purple-600" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-sm font-semibold text-gray-900">{t('allLessonsFromCoach')} {coachName}</div>
+                            <div className="text-xs text-gray-400">{coachNotes.length} {t('sessions')}</div>
+                          </div>
+                          {coachInfo && (
+                            <button onClick={() => setViewingCoach(coachInfo)} className="text-xs text-purple-600 hover:text-purple-700 font-medium">
+                              {t('viewProfile')}
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Lesson timeline */}
+                        <div className="space-y-4">
+                          {coachNotes.map((note, idx) => (
+                            <div key={note.id} className="flex gap-3">
+                              {/* Timeline */}
+                              <div className="flex flex-col items-center w-10 shrink-0">
+                                <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold">
+                                  {note.lessonNumber}
+                                </div>
+                                {idx < coachNotes.length - 1 && <div className="flex-1 w-px bg-purple-100 mt-1"></div>}
+                              </div>
+
+                              {/* Content */}
+                              <div className="flex-1 pb-4">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                  <span className="text-sm font-medium text-gray-900">{t('lessonNumber')} {note.lessonNumber}</span>
+                                  <span className="text-[11px] text-gray-400">
+                                    {new Date(note.date).toLocaleDateString(currentLocale, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                                  </span>
+                                </div>
+
+                                {note.topic && (
+                                  <div className="bg-purple-50 rounded-lg p-3 mb-2">
+                                    <div className="text-[11px] text-purple-500 font-medium mb-0.5">{t('topicTaught')}</div>
+                                    <div className="text-sm text-gray-800 font-medium">{note.topic}</div>
+                                  </div>
+                                )}
+
+                                {note.homework && (
+                                  <div className="bg-amber-50 rounded-lg p-3 mb-2">
+                                    <div className="text-[11px] text-amber-600 font-medium mb-0.5">{t('homeworkAssigned')}</div>
+                                    <div className="text-sm text-gray-700">{note.homework}</div>
+                                  </div>
+                                )}
+
+                                {note.notes && (
+                                  <div className="text-xs text-gray-500 mt-1 bg-gray-50 rounded-lg p-2.5">{note.notes}</div>
+                                )}
+
+                                {note.attachments && note.attachments.length > 0 && (
+                                  <div className="flex flex-wrap gap-2 mt-2">
+                                    {note.attachments.map((att, i) => (
+                                      att.type.startsWith('image/') ? (
+                                        <img key={i} src={att.dataUrl} alt={att.name} className="w-20 h-20 rounded-lg object-cover ring-1 ring-gray-200 cursor-pointer hover:ring-purple-300 transition-all" onClick={() => window.open(att.dataUrl)} />
+                                      ) : (
+                                        <a key={i} href={att.dataUrl} download={att.name} className="flex items-center gap-1.5 text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors">
+                                          <Paperclip size={12} /> {att.name}
+                                        </a>
+                                      )
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
+              ) : (
+                <div className="card p-12 text-center">
+                  <BookOpen size={40} className="mx-auto mb-3 text-gray-200" />
+                  <p className="text-gray-400 text-sm font-medium">{t('noLessonsYet')}</p>
+                  <p className="text-gray-300 text-xs mt-1">{t('noLessonsDesc')}</p>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Dashboard View */}
         {viewMode === 'dashboard' && role === 'admin' && (
