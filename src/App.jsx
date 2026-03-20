@@ -387,6 +387,8 @@ const TRANSLATIONS = {
   noLessonsYet: { th: 'คุณยังไม่มีบทเรียน', en: 'No lessons yet', ja: 'レッスンなし', ru: 'Уроков пока нет', zh: '暂无课程' },
   noLessonsDesc: { th: 'เมื่อโค้ชบันทึกการสอน จะแสดงที่นี่', en: 'Lessons will appear here when your coach adds notes', ja: 'コーチがノートを追加すると表示されます', ru: 'Появится после добавления заметок тренером', zh: '当教练添加笔记后将显示在这里' },
   viewAll: { th: 'ดูทั้งหมด', en: 'View All', ja: 'すべて表示', ru: 'Показать все', zh: '查看全部' },
+  lessonDetail: { th: 'รายละเอียดการสอน', en: 'Lesson Details', ja: 'レッスン詳細', ru: 'Детали урока', zh: '课程详情' },
+  homeworkSection: { th: 'การบ้าน', en: 'Homework', ja: '宿題', ru: 'Домашнее задание', zh: '作业' },
 };
 const DEFAULT_COACHES = [
   { id: 1, name: 'โค้ชเอ', price: 2000, education: 'PGA Teaching Professional', expertise: 'Short Game, Putting', bio: 'ประสบการณ์สอน 10 ปี เน้นเทคนิค Short Game และ Putting ให้ผลลัพธ์ที่วัดได้จริง', avatar: '', active: true },
@@ -726,6 +728,7 @@ export default function App() {
   });
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null); // { phone, name } for coach-clients detail view
+  const [expandedLessons, setExpandedLessons] = useState({}); // { noteId: 'detail' | 'homework' | null } for accordion
 
   // Report date range
   const [reportStartDate, setReportStartDate] = useState(() => {
@@ -2224,61 +2227,85 @@ export default function App() {
                           )}
                         </div>
 
-                        {/* Lesson timeline */}
-                        <div className="space-y-4">
-                          {coachNotes.map((note, idx) => (
-                            <div key={note.id} className="flex gap-3">
-                              {/* Timeline */}
-                              <div className="flex flex-col items-center w-10 shrink-0">
-                                <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold">
-                                  {note.lessonNumber}
-                                </div>
-                                {idx < coachNotes.length - 1 && <div className="flex-1 w-px bg-purple-100 mt-1"></div>}
-                              </div>
-
-                              {/* Content */}
-                              <div className="flex-1 pb-4">
-                                <div className="flex items-center gap-2 mb-1.5">
-                                  <span className="text-sm font-medium text-gray-900">{t('lessonNumber')} {note.lessonNumber}</span>
-                                  <span className="text-[11px] text-gray-400">
-                                    {new Date(note.date).toLocaleDateString(currentLocale, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
-                                  </span>
-                                </div>
-
-                                {note.topic && (
-                                  <div className="bg-purple-50 rounded-lg p-3 mb-2">
-                                    <div className="text-[11px] text-purple-500 font-medium mb-0.5">{t('topicTaught')}</div>
-                                    <div className="text-sm text-gray-800 font-medium">{note.topic}</div>
+                        {/* Lesson cards with accordion */}
+                        <div className="space-y-3">
+                          {coachNotes.map((note) => {
+                            const isDetailOpen = expandedLessons[note.id] === 'detail';
+                            const isHomeworkOpen = expandedLessons[note.id] === 'homework';
+                            const toggleSection = (section) => {
+                              setExpandedLessons(prev => ({
+                                ...prev,
+                                [note.id]: prev[note.id] === section ? null : section
+                              }));
+                            };
+                            return (
+                              <div key={note.id} className="rounded-xl ring-1 ring-gray-200 bg-white overflow-hidden">
+                                {/* Header - always visible */}
+                                <div className="px-4 py-3 flex items-center gap-3">
+                                  <div className="w-7 h-7 rounded-md bg-gray-100 text-gray-600 flex items-center justify-center text-xs font-bold shrink-0">
+                                    {note.lessonNumber}
                                   </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-medium text-gray-900">{note.topic || `${t('lessonNumber')} ${note.lessonNumber}`}</div>
+                                    <div className="text-[11px] text-gray-400">
+                                      {new Date(note.date).toLocaleDateString(currentLocale, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Detail dropdown */}
+                                {(note.notes || (note.attachments && note.attachments.length > 0)) && (
+                                  <>
+                                    <button
+                                      onClick={() => toggleSection('detail')}
+                                      className="w-full flex items-center justify-between px-4 py-2.5 border-t border-gray-100 text-left hover:bg-gray-50 transition-colors"
+                                    >
+                                      <span className="text-xs font-medium text-gray-500">{t('lessonDetail')}</span>
+                                      <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${isDetailOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+                                    {isDetailOpen && (
+                                      <div className="px-4 pb-4 border-t border-gray-50">
+                                        {note.notes && (
+                                          <p className="text-sm text-gray-600 leading-relaxed pt-3 whitespace-pre-wrap">{note.notes}</p>
+                                        )}
+                                        {note.attachments && note.attachments.length > 0 && (
+                                          <div className="flex flex-wrap gap-2 mt-3">
+                                            {note.attachments.map((att, i) => (
+                                              att.type.startsWith('image/') ? (
+                                                <img key={i} src={att.dataUrl} alt={att.name} className="w-20 h-20 rounded-lg object-cover ring-1 ring-gray-200 cursor-pointer hover:ring-gray-300 transition-all" onClick={() => window.open(att.dataUrl)} />
+                                              ) : (
+                                                <a key={i} href={att.dataUrl} download={att.name} className="flex items-center gap-1.5 text-xs text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors ring-1 ring-gray-200">
+                                                  <Paperclip size={12} /> {att.name}
+                                                </a>
+                                              )
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </>
                                 )}
 
+                                {/* Homework dropdown */}
                                 {note.homework && (
-                                  <div className="bg-amber-50 rounded-lg p-3 mb-2">
-                                    <div className="text-[11px] text-amber-600 font-medium mb-0.5">{t('homeworkAssigned')}</div>
-                                    <div className="text-sm text-gray-700">{note.homework}</div>
-                                  </div>
-                                )}
-
-                                {note.notes && (
-                                  <div className="text-xs text-gray-500 mt-1 bg-gray-50 rounded-lg p-2.5">{note.notes}</div>
-                                )}
-
-                                {note.attachments && note.attachments.length > 0 && (
-                                  <div className="flex flex-wrap gap-2 mt-2">
-                                    {note.attachments.map((att, i) => (
-                                      att.type.startsWith('image/') ? (
-                                        <img key={i} src={att.dataUrl} alt={att.name} className="w-20 h-20 rounded-lg object-cover ring-1 ring-gray-200 cursor-pointer hover:ring-purple-300 transition-all" onClick={() => window.open(att.dataUrl)} />
-                                      ) : (
-                                        <a key={i} href={att.dataUrl} download={att.name} className="flex items-center gap-1.5 text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors">
-                                          <Paperclip size={12} /> {att.name}
-                                        </a>
-                                      )
-                                    ))}
-                                  </div>
+                                  <>
+                                    <button
+                                      onClick={() => toggleSection('homework')}
+                                      className="w-full flex items-center justify-between px-4 py-2.5 border-t border-gray-100 text-left hover:bg-gray-50 transition-colors"
+                                    >
+                                      <span className="text-xs font-medium text-gray-500">{t('homeworkSection')}</span>
+                                      <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${isHomeworkOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+                                    {isHomeworkOpen && (
+                                      <div className="px-4 pb-4 border-t border-gray-50">
+                                        <p className="text-sm text-gray-600 leading-relaxed pt-3 whitespace-pre-wrap">{note.homework}</p>
+                                      </div>
+                                    )}
+                                  </>
                                 )}
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     );
