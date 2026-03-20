@@ -2014,14 +2014,16 @@ export default function App() {
                                 <div
                                   onClick={() => openManageModal(booking)}
                                   className={`p-2.5 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all duration-200 group relative min-h-[66px] cursor-pointer ${
-                                    (role === 'admin' || role === 'coach')
+                                    role === 'admin'
                                       ? getStatusColor(booking.status)
-                                      : currentUser && booking.phone === currentUser.phone
-                                        ? 'bg-emerald-50 ring-1 ring-emerald-200 cursor-default'
-                                        : 'bg-gray-50 ring-1 ring-gray-100 cursor-default opacity-60'
+                                      : (role === 'coach' && booking.withCoach && booking.coachName === selectedRoleCoach)
+                                        ? getStatusColor(booking.status)
+                                        : currentUser && booking.phone === currentUser.phone
+                                          ? 'bg-emerald-50 ring-1 ring-emerald-200 cursor-default'
+                                          : 'bg-gray-50 ring-1 ring-gray-100 cursor-default opacity-60'
                                   }`}
                                 >
-                                  {(role === 'admin' || role === 'coach') ? (
+                                  {role === 'admin' ? (
                                     <>
                                       <span className="font-medium text-sm flex items-center gap-1">
                                         {booking.status === 'checked-in' && <CheckCircle2 size={14} className="text-emerald-500"/>}
@@ -2038,6 +2040,22 @@ export default function App() {
                                         </span>
                                         {booking.usedQuota && <span className="badge badge-member text-[10px]"><Award size={10}/> Member</span>}
                                         {booking.withCoach && <span className="badge badge-coach text-[10px]"><GraduationCap size={10} /> {booking.coachName || t('coach')}</span>}
+                                      </div>
+                                    </>
+                                  ) : (role === 'coach' && booking.withCoach && booking.coachName === selectedRoleCoach) ? (
+                                    <>
+                                      <span className="font-medium text-sm flex items-center gap-1">
+                                        {booking.status === 'checked-in' && <CheckCircle2 size={14} className="text-emerald-500"/>}
+                                        {booking.customerName}
+                                      </span>
+                                      <span className="text-[11px] text-gray-400">{booking.phone}</span>
+                                      <div className="flex items-center gap-1 mt-0.5 flex-wrap justify-center">
+                                        <span className={`badge text-[10px] ${
+                                          booking.status === 'booked' ? 'badge-booked' :
+                                          booking.status === 'checked-in' ? 'badge-checked-in' : 'badge-no-show'
+                                        }`}>
+                                          {booking.status === 'booked' ? t('statusBooked') : booking.status === 'checked-in' ? t('statusCheckedIn') : t('statusNoShow')}
+                                        </span>
                                       </div>
                                     </>
                                   ) : (
