@@ -8,14 +8,25 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:server": "node --experimental-strip-types --watch server/index.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "serve dist -s -l $PORT"
+    "start": "serve dist -s -l $PORT",
+    "start:api": "npx prisma generate && node --experimental-strip-types server/index.js",
+    "start:server": "node --experimental-strip-types server/index.js",
+    "seed": "node --experimental-strip-types prisma/seed.js"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.5.0",
+    "@prisma/client": "^7.5.0",
     "@tailwindcss/vite": "^4.2.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
     "lucide-react": "^0.577.0",
+    "pg": "^8.20.0",
+    "prisma": "^7.5.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "serve": "^14.2.6",

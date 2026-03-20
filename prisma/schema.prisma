@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String   @unique
+  password  String
+  role      String   @default("customer") // admin, coach, customer
+  coachName String?
+  avatar    String?
+  createdAt DateTime @default(now())
+}
+
+model Coach {
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Int      @default(1500)
+  education String?
+  expertise String?
+  bio       String?
+  avatar    String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Bay {
+  id     Int      @id @default(autoincrement())
+  name   String
+  type   String?  // trackman, foresight, null
+  price  Int      @default(1000)
+  active Boolean  @default(true)
+}
+
+model Booking {
+  id           Int      @id @default(autoincrement())
+  date         String
+  machine      String
+  time         String
+  customerName String
+  phone        String
+  email        String?
+  lineId       String?
+  withCoach    Boolean  @default(false)
+  coachName    String?
+  status       String   @default("booked") // booked, checked-in, no-show
+  price        Int      @default(0)
+  discount     Int      @default(0)
+  usedQuota    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model Member {
+  id             Int    @id @default(autoincrement())
+  phone          String @unique
+  name           String
+  lineId         String?
+  email          String?
+  trackmanHours  Int    @default(0)
+  trackmanBought Int    @default(0)
+  trackmanCoach  String?
+  foresightHours  Int   @default(0)
+  foresightBought Int   @default(0)
+  foresightCoach  String?
+}
+
+model LessonNote {
+  id            Int      @id @default(autoincrement())
+  bookingId     String
+  coachName     String
+  customerPhone String
+  customerName  String
+  date          String
+  lessonNumber  Int
+  topic         String?
+  homework      String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  attachments   Attachment[]
+}
+
+model Attachment {
+  id           Int        @id @default(autoincrement())
+  name         String
+  type         String
+  dataUrl      String
+  lessonNote   LessonNote @relation(fields: [lessonNoteId], references: [id], onDelete: Cascade)
+  lessonNoteId Int
+}
+
+model Package {
+  id          String  @id @default(cuid())
+  name        String
+  hours       Int
+  price       Int
+  machineType String  // trackman, foresight
+  highlight   Boolean @default(false)
+  save        String?
+  desc        String?
+  active      Boolean @default(true)
+}
+
+model PromoCode {
+  id         Int      @id @default(autoincrement())
+  code       String   @unique
+  type       String   // percent, fixed
+  value      Int
+  active     Boolean  @default(true)
+  expiryDate String?
+}

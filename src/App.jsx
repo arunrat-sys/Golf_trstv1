@@ -10,6 +10,21 @@ import {
   Paperclip, Globe
 } from 'lucide-react';
 
+// API Configuration
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const api = async (path, options = {}) => {
+  const res = await fetch(`${API_URL}${path}`, {
+    headers: { 'Content-Type': 'application/json', ...options.headers },
+    ...options,
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || 'API Error');
+  }
+  return res.json();
+};
+
 const START_HOUR = 9;
 const END_HOUR = 22;
 const DAYS_OF_WEEK_MAP = {
@@ -480,100 +495,124 @@ export default function App() {
   const [editingCoachId, setEditingCoachId] = useState(null);
 
   // Coach CRUD
-  const handleSaveCoach = () => {
+  const handleSaveCoach = async () => {
     if (!coachForm.name.trim()) { alert(t('alertEnterCoachName')); return; }
-    if (editingCoachId) {
-      const oldCoach = coaches.find(c => c.id === editingCoachId);
-      setCoaches(coaches.map(c => c.id === editingCoachId ? { ...c, ...coachForm, name: coachForm.name.trim(), price: Number(coachForm.price) || 1500 } : c));
-      if (oldCoach) {
-        setAppUsers(appUsers.map(u => u.coachName === oldCoach.name ? { ...u, name: coachForm.name.trim(), coachName: coachForm.name.trim() } : u));
+    try {
+      if (editingCoachId) {
+        const updated = await api(`/api/coaches/${editingCoachId}`, { method: 'PUT', body: { name: coachForm.name.trim(), price: Number(coachForm.price) || 1500, education: coachForm.education, expertise: coachForm.expertise, bio: coachForm.bio } });
+        setCoaches(coaches.map(c => c.id === editingCoachId ? updated : c));
+        setEditingCoachId(null);
+      } else {
+        if (!coachForm.phone.trim()) { alert(t('coachPhone')); return; }
+        const created = await api('/api/coaches', { method: 'POST', body: { name: coachForm.name.trim(), price: Number(coachForm.price) || 1500, education: coachForm.education, expertise: coachForm.expertise, bio: coachForm.bio } });
+        setCoaches([...coaches, created]);
+        const newUser = await api('/api/auth/register', { method: 'POST', body: { name: coachForm.name.trim(), phone: coachForm.phone.trim(), password: coachForm.password || '1234', role: 'coach', coachName: coachForm.name.trim() } });
+        setAppUsers([...appUsers, newUser]);
+        alert(`${t('coachAccountCreated')}\n${t('coachPhone')}: ${coachForm.phone.trim()}\n${t('coachPassword')}: ${coachForm.password || '1234'}`);
       }
-      setEditingCoachId(null);
-    } else {
-      if (!coachForm.phone.trim()) { alert(t('coachPhone')); return; }
-      if (appUsers.some(u => u.phone === coachForm.phone.trim())) { alert(t('errPhoneUsed')); return; }
-      setCoaches([...coaches, { ...coachForm, id: Date.now(), name: coachForm.name.trim(), price: Number(coachForm.price) || 1500, active: true }]);
-      const newCoachUser = {
-        id: Date.now() + 1,
-        name: coachForm.name.trim(),
-        phone: coachForm.phone.trim(),
-        password: coachForm.password || '1234',
-        role: 'coach',
-        coachName: coachForm.name.trim(),
-        avatar: '',
-      };
-      setAppUsers([...appUsers, newCoachUser]);
-      alert(`${t('coachAccountCreated')}\n${t('coachPhone')}: ${coachForm.phone.trim()}\n${t('coachPassword')}: ${coachForm.password || '1234'}`);
-    }
+    } catch (err) { console.error('Save coach error:', err); alert(err.message); }
     setCoachForm({ name: '', price: 1500, education: '', expertise: '', bio: '', phone: '', password: '1234' });
   };
   const handleEditCoach = (coach) => {
     setEditingCoachId(coach.id);
     setCoachForm({ name: coach.name, price: coach.price, education: coach.education || '', expertise: coach.expertise || '', bio: coach.bio || '', phone: '', password: '' });
   };
-  const handleToggleCoach = (id) => setCoaches(coaches.map(c => c.id === id ? { ...c, active: !c.active } : c));
-  const handleDeleteCoach = (id) => {
-    if (confirm(t('alertDeleteCoach'))) setCoaches(coaches.filter(c => c.id !== id));
+  const handleToggleCoach = async (id) => {
+    const coach = coaches.find(c => c.id === id);
+    if (!coach) return;
+    try {
+      const updated = await api(`/api/coaches/${id}`, { method: 'PUT', body: { active: !coach.active } });
+      setCoaches(coaches.map(c => c.id === id ? updated : c));
+    } catch (err) { console.error(err); }
+  };
+  const handleDeleteCoach = async (id) => {
+    if (confirm(t('alertDeleteCoach'))) {
+      try { await api(`/api/coaches/${id}`, { method: 'DELETE' }); setCoaches(coaches.filter(c => c.id !== id)); } catch (err) { console.error(err); }
+    }
   };
 
   // Bay CRUD
-  const handleSaveBay = () => {
+  const handleSaveBay = async () => {
     if (!bayForm.name.trim()) { alert(t('alertEnterBayName')); return; }
-    if (editingBayId) {
-      setBays(bays.map(b => b.id === editingBayId ? { ...b, name: bayForm.name.trim(), type: bayForm.type || null, price: Number(bayForm.price) || 1000 } : b));
-      setEditingBayId(null);
-    } else {
-      setBays([...bays, { id: Date.now(), name: bayForm.name.trim(), type: bayForm.type || null, price: Number(bayForm.price) || 1000, active: true }]);
-    }
+    try {
+      if (editingBayId) {
+        const updated = await api(`/api/bays/${editingBayId}`, { method: 'PUT', body: { name: bayForm.name.trim(), type: bayForm.type || null, price: Number(bayForm.price) || 1000 } });
+        setBays(bays.map(b => b.id === editingBayId ? updated : b));
+        setEditingBayId(null);
+      } else {
+        const created = await api('/api/bays', { method: 'POST', body: { name: bayForm.name.trim(), type: bayForm.type || null, price: Number(bayForm.price) || 1000 } });
+        setBays([...bays, created]);
+      }
+    } catch (err) { console.error(err); }
     setBayForm({ name: '', type: 'foresight', price: 1000 });
   };
   const handleEditBay = (bay) => {
     setEditingBayId(bay.id);
     setBayForm({ name: bay.name, type: bay.type || '', price: bay.price });
   };
-  const handleToggleBay = (id) => setBays(bays.map(b => b.id === id ? { ...b, active: !b.active } : b));
-  const handleDeleteBay = (id) => {
-    if (confirm(t('alertDeleteBay'))) setBays(bays.filter(b => b.id !== id));
+  const handleToggleBay = async (id) => {
+    const bay = bays.find(b => b.id === id);
+    if (!bay) return;
+    try { const updated = await api(`/api/bays/${id}`, { method: 'PUT', body: { active: !bay.active } }); setBays(bays.map(b => b.id === id ? updated : b)); } catch (err) { console.error(err); }
+  };
+  const handleDeleteBay = async (id) => {
+    if (confirm(t('alertDeleteBay'))) { try { await api(`/api/bays/${id}`, { method: 'DELETE' }); setBays(bays.filter(b => b.id !== id)); } catch (err) { console.error(err); } }
   };
 
   // Package CRUD
-  const handleSavePackage = () => {
+  const handleSavePackage = async () => {
     if (!pkgForm.name.trim()) { alert(t('alertEnterPkgName')); return; }
-    if (editingPkgId) {
-      setPackages(packages.map(p => p.id === editingPkgId ? { ...p, ...pkgForm, name: pkgForm.name.trim(), hours: Number(pkgForm.hours), price: Number(pkgForm.price) } : p));
-      setEditingPkgId(null);
-    } else {
-      setPackages([...packages, { ...pkgForm, id: `pkg_${Date.now()}`, name: pkgForm.name.trim(), hours: Number(pkgForm.hours), price: Number(pkgForm.price), active: true }]);
-    }
+    try {
+      if (editingPkgId) {
+        const updated = await api(`/api/packages/${editingPkgId}`, { method: 'PUT', body: { ...pkgForm, name: pkgForm.name.trim(), hours: Number(pkgForm.hours), price: Number(pkgForm.price) } });
+        setPackages(packages.map(p => p.id === editingPkgId ? updated : p));
+        setEditingPkgId(null);
+      } else {
+        const created = await api('/api/packages', { method: 'POST', body: { ...pkgForm, name: pkgForm.name.trim(), hours: Number(pkgForm.hours), price: Number(pkgForm.price) } });
+        setPackages([...packages, created]);
+      }
+    } catch (err) { console.error(err); }
     setPkgForm({ name: '', hours: 1, price: 0, machineType: 'trackman', highlight: false, save: '', desc: '' });
   };
   const handleEditPackage = (pkg) => {
     setEditingPkgId(pkg.id);
     setPkgForm({ name: pkg.name, hours: pkg.hours, price: pkg.price, machineType: pkg.machineType, highlight: pkg.highlight, save: pkg.save || '', desc: pkg.desc || '' });
   };
-  const handleTogglePackage = (id) => setPackages(packages.map(p => p.id === id ? { ...p, active: !p.active } : p));
-  const handleDeletePackage = (id) => {
-    if (confirm(t('alertDeletePkg'))) setPackages(packages.filter(p => p.id !== id));
+  const handleTogglePackage = async (id) => {
+    const pkg = packages.find(p => p.id === id);
+    if (!pkg) return;
+    try { const updated = await api(`/api/packages/${id}`, { method: 'PUT', body: { active: !pkg.active } }); setPackages(packages.map(p => p.id === id ? updated : p)); } catch (err) { console.error(err); }
+  };
+  const handleDeletePackage = async (id) => {
+    if (confirm(t('alertDeletePkg'))) { try { await api(`/api/packages/${id}`, { method: 'DELETE' }); setPackages(packages.filter(p => p.id !== id)); } catch (err) { console.error(err); } }
   };
 
   // Promo CRUD
-  const handleSavePromo = () => {
+  const handleSavePromo = async () => {
     if (!promoForm.code.trim()) { alert(t('alertEnterPromoCode')); return; }
-    if (editingPromoId) {
-      setPromoCodes(promoCodes.map(p => p.id === editingPromoId ? { ...p, ...promoForm, code: promoForm.code.trim().toUpperCase(), value: Number(promoForm.value) } : p));
-      setEditingPromoId(null);
-    } else {
-      setPromoCodes([...promoCodes, { ...promoForm, id: Date.now(), code: promoForm.code.trim().toUpperCase(), value: Number(promoForm.value), active: true }]);
-    }
+    try {
+      if (editingPromoId) {
+        const updated = await api(`/api/promo-codes/${editingPromoId}`, { method: 'PUT', body: { ...promoForm, code: promoForm.code.trim().toUpperCase(), value: Number(promoForm.value) } });
+        setPromoCodes(promoCodes.map(p => p.id === editingPromoId ? updated : p));
+        setEditingPromoId(null);
+      } else {
+        const created = await api('/api/promo-codes', { method: 'POST', body: { ...promoForm, code: promoForm.code.trim().toUpperCase(), value: Number(promoForm.value) } });
+        setPromoCodes([...promoCodes, created]);
+      }
+    } catch (err) { console.error(err); }
     setPromoForm({ code: '', type: 'percent', value: 0, expiryDate: '' });
   };
   const handleEditPromo = (promo) => {
     setEditingPromoId(promo.id);
     setPromoForm({ code: promo.code, type: promo.type, value: promo.value, expiryDate: promo.expiryDate || '' });
   };
-  const handleTogglePromo = (id) => setPromoCodes(promoCodes.map(p => p.id === id ? { ...p, active: !p.active } : p));
-  const handleDeletePromo = (id) => {
-    if (confirm(t('alertDeletePromo'))) setPromoCodes(promoCodes.filter(p => p.id !== id));
+  const handleTogglePromo = async (id) => {
+    const promo = promoCodes.find(p => p.id === id);
+    if (!promo) return;
+    try { const updated = await api(`/api/promo-codes/${id}`, { method: 'PUT', body: { active: !promo.active } }); setPromoCodes(promoCodes.map(p => p.id === id ? updated : p)); } catch (err) { console.error(err); }
+  };
+  const handleDeletePromo = async (id) => {
+    if (confirm(t('alertDeletePromo'))) { try { await api(`/api/promo-codes/${id}`, { method: 'DELETE' }); setPromoCodes(promoCodes.filter(p => p.id !== id)); } catch (err) { console.error(err); } }
   };
 
   // Coach profile modal
@@ -643,15 +682,19 @@ export default function App() {
     }
     setIsLessonNoteModalOpen(true);
   };
-  const handleSaveLessonNote = () => {
-    if (editingLessonNote) {
-      setLessonNotes(lessonNotes.map(n =>
-        n.id === editingLessonNote.id ? { ...n, ...lessonNoteForm, updatedAt: new Date().toISOString() } : n
-      ));
-    } else {
-      setLessonNotes([...lessonNotes, { id: Date.now(), ...lessonNoteForm, createdAt: new Date().toISOString() }]);
+  const handleSaveLessonNote = async () => {
+    try {
+      if (editingLessonNote) {
+        const updated = await api(`/api/lesson-notes/${editingLessonNote.id}`, { method: 'PUT', body: lessonNoteForm });
+        setLessonNotes(lessonNotes.map(n => n.id === editingLessonNote.id ? updated : n));
+      } else {
+        const created = await api('/api/lesson-notes', { method: 'POST', body: lessonNoteForm });
+        setLessonNotes([...lessonNotes, created]);
+      }
+      setIsLessonNoteModalOpen(false);
+    } catch (err) {
+      console.error('Save lesson note error:', err);
     }
-    setIsLessonNoteModalOpen(false);
   };
   const handleLessonNoteAttachment = (file) => {
     if (!file) return;
@@ -680,22 +723,7 @@ export default function App() {
   };
 
   // ---------------- AUTH STATE ----------------
-  const [appUsers, setAppUsers] = useState([
-    { id: 1, name: 'Admin', phone: '0999999999', password: '1234', role: 'admin', coachName: '', avatar: '' },
-    { id: 2, name: 'โค้ชเอ', phone: '0811111111', password: '1234', role: 'coach', coachName: 'โค้ชเอ', avatar: '' },
-    { id: 3, name: 'โค้ชบี', phone: '0822222222', password: '1234', role: 'coach', coachName: 'โค้ชบี', avatar: '' },
-    { id: 4, name: 'โค้ชซี', phone: '0833333333', password: '1234', role: 'coach', coachName: 'โค้ชซี', avatar: '' },
-    { id: 5, name: 'คุณสมชาย', phone: '0812345678', password: '1234', role: 'customer', coachName: '', avatar: '' },
-    { id: 6, name: 'คุณสมศรี', phone: '0898765432', password: '1234', role: 'customer', coachName: '', avatar: '' },
-    { id: 7, name: 'คุณจอห์น', phone: '0887776666', password: '1234', role: 'customer', coachName: '', avatar: '' },
-    { id: 8, name: 'คุณวิภา', phone: '0861112233', password: '1234', role: 'customer', coachName: '', avatar: '' },
-    { id: 9, name: 'คุณธนา', phone: '0892223344', password: '1234', role: 'customer', coachName: '', avatar: '' },
-    { id: 10, name: 'คุณนภา', phone: '0843334455', password: '1234', role: 'customer', coachName: '', avatar: '' },
-    { id: 11, name: 'คุณพิชัย', phone: '0854445566', password: '1234', role: 'customer', coachName: '', avatar: '' },
-    { id: 12, name: 'คุณอรุณ', phone: '0865556677', password: '1234', role: 'customer', coachName: '', avatar: '' },
-    { id: 13, name: 'Mr. Tanaka', phone: '0876667788', password: '1234', role: 'customer', coachName: '', avatar: '' },
-    { id: 14, name: 'Ms. Sarah', phone: '0887778899', password: '1234', role: 'customer', coachName: '', avatar: '' },
-  ]);
+  const [appUsers, setAppUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
   const [authPhone, setAuthPhone] = useState('');
@@ -717,106 +745,42 @@ export default function App() {
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
 
-  // Helper to get past date strings
-  const getPastDate = (daysAgo) => {
-    const d = new Date(); d.setDate(d.getDate() - daysAgo);
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().split('T')[0];
+  const [bookings, setBookings] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [lessonNotes, setLessonNotes] = useState([]);
+
+  // Load all data from API
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const loadAllData = async () => {
+    try {
+      const [usersData, coachesData, baysData, bookingsData, membersData, notesData, packagesData, promosData] = await Promise.all([
+        api('/api/users'),
+        api('/api/coaches'),
+        api('/api/bays'),
+        api('/api/bookings'),
+        api('/api/members'),
+        api('/api/lesson-notes'),
+        api('/api/packages'),
+        api('/api/promo-codes'),
+      ]);
+      setAppUsers(usersData);
+      setCoaches(coachesData);
+      setBays(baysData);
+      setBookings(bookingsData);
+      setMembers(membersData);
+      setLessonNotes(notesData);
+      setPackages(packagesData);
+      setPromoCodes(promosData);
+      setDataLoaded(true);
+    } catch (err) {
+      console.error('Failed to load data:', err);
+      setDataLoaded(true); // still show UI
+    }
   };
+  useEffect(() => { loadAllData(); }, []);
 
-  const [bookings, setBookings] = useState([
-    // --- Today ---
-    { id: 1, date: getTodayString(), machine: 'Bay 1 (Trackman)', time: '10:00 - 11:00', customerName: 'คุณสมชาย', phone: '0812345678', email: 'somchai@test.com', lineId: 'somchai123', withCoach: true, coachName: 'โค้ชเอ', status: 'checked-in', price: 3000, discount: 0, usedQuota: true },
-    { id: 2, date: getTodayString(), machine: 'Bay 2 (Foresight)', time: '13:00 - 14:00', customerName: 'คุณสมศรี', phone: '0898765432', email: 'somsri@mail.com', lineId: 'somsri_line', withCoach: true, coachName: 'โค้ชบี', status: 'booked', price: 2500, discount: 0, usedQuota: false },
-    { id: 3, date: getTodayString(), machine: 'Bay 1 (Trackman)', time: '14:00 - 15:00', customerName: 'คุณวิภา', phone: '0861112233', email: 'wipa@mail.com', lineId: '', withCoach: true, coachName: 'โค้ชเอ', status: 'booked', price: 3500, discount: 0, usedQuota: true },
-    { id: 4, date: getTodayString(), machine: 'Bay 3', time: '15:00 - 16:00', customerName: 'Mr. Tanaka', phone: '0876667788', email: 'tanaka@jp.com', lineId: '', withCoach: true, coachName: 'โค้ชซี', status: 'booked', price: 2500, discount: 0, usedQuota: false },
-    // --- Yesterday ---
-    { id: 10, date: getPastDate(1), machine: 'Bay 1 (Trackman)', time: '10:00 - 11:00', customerName: 'คุณสมชาย', phone: '0812345678', email: 'somchai@test.com', lineId: 'somchai123', withCoach: true, coachName: 'โค้ชเอ', status: 'checked-in', price: 3000, discount: 0, usedQuota: true },
-    { id: 11, date: getPastDate(1), machine: 'Bay 2 (Foresight)', time: '11:00 - 12:00', customerName: 'คุณจอห์น', phone: '0887776666', email: 'john@mail.com', lineId: 'john_doe', withCoach: true, coachName: 'โค้ชบี', status: 'checked-in', price: 2500, discount: 0, usedQuota: true },
-    { id: 12, date: getPastDate(1), machine: 'Bay 1 (Trackman)', time: '14:00 - 15:00', customerName: 'คุณธนา', phone: '0892223344', email: 'thana@mail.com', lineId: 'thana_line', withCoach: true, coachName: 'โค้ชเอ', status: 'checked-in', price: 3500, discount: 0, usedQuota: false },
-    { id: 13, date: getPastDate(1), machine: 'Bay 2 (Foresight)', time: '16:00 - 17:00', customerName: 'Ms. Sarah', phone: '0887778899', email: 'sarah@email.com', lineId: '', withCoach: true, coachName: 'โค้ชซี', status: 'checked-in', price: 2500, discount: 0, usedQuota: false },
-    // --- 3 days ago ---
-    { id: 20, date: getPastDate(3), machine: 'Bay 1 (Trackman)', time: '10:00 - 11:00', customerName: 'คุณนภา', phone: '0843334455', email: 'napa@mail.com', lineId: 'napa_line', withCoach: true, coachName: 'โค้ชเอ', status: 'checked-in', price: 3500, discount: 0, usedQuota: true },
-    { id: 21, date: getPastDate(3), machine: 'Bay 2 (Foresight)', time: '11:00 - 12:00', customerName: 'คุณพิชัย', phone: '0854445566', email: 'pichai@mail.com', lineId: '', withCoach: true, coachName: 'โค้ชบี', status: 'checked-in', price: 2500, discount: 0, usedQuota: true },
-    { id: 22, date: getPastDate(3), machine: 'Bay 1 (Trackman)', time: '13:00 - 14:00', customerName: 'คุณสมชาย', phone: '0812345678', email: 'somchai@test.com', lineId: 'somchai123', withCoach: true, coachName: 'โค้ชเอ', status: 'checked-in', price: 3000, discount: 0, usedQuota: true },
-    { id: 23, date: getPastDate(3), machine: 'Bay 2 (Foresight)', time: '15:00 - 16:00', customerName: 'คุณอรุณ', phone: '0865556677', email: 'arun@mail.com', lineId: 'arun_golf', withCoach: true, coachName: 'โค้ชซี', status: 'checked-in', price: 2500, discount: 0, usedQuota: false },
-    // --- 5 days ago ---
-    { id: 30, date: getPastDate(5), machine: 'Bay 1 (Trackman)', time: '10:00 - 11:00', customerName: 'คุณวิภา', phone: '0861112233', email: 'wipa@mail.com', lineId: '', withCoach: true, coachName: 'โค้ชเอ', status: 'checked-in', price: 3500, discount: 0, usedQuota: true },
-    { id: 31, date: getPastDate(5), machine: 'Bay 2 (Foresight)', time: '11:00 - 12:00', customerName: 'คุณสมศรี', phone: '0898765432', email: 'somsri@mail.com', lineId: 'somsri_line', withCoach: true, coachName: 'โค้ชบี', status: 'checked-in', price: 2500, discount: 0, usedQuota: true },
-    { id: 32, date: getPastDate(5), machine: 'Bay 1 (Trackman)', time: '14:00 - 15:00', customerName: 'คุณจอห์น', phone: '0887776666', email: 'john@mail.com', lineId: 'john_doe', withCoach: true, coachName: 'โค้ชเอ', status: 'checked-in', price: 3500, discount: 0, usedQuota: true },
-    { id: 33, date: getPastDate(5), machine: 'Bay 3', time: '16:00 - 17:00', customerName: 'Mr. Tanaka', phone: '0876667788', email: 'tanaka@jp.com', lineId: '', withCoach: true, coachName: 'โค้ชซี', status: 'checked-in', price: 2000, discount: 0, usedQuota: false },
-    // --- 7 days ago ---
-    { id: 40, date: getPastDate(7), machine: 'Bay 1 (Trackman)', time: '10:00 - 11:00', customerName: 'คุณสมชาย', phone: '0812345678', email: 'somchai@test.com', lineId: 'somchai123', withCoach: true, coachName: 'โค้ชเอ', status: 'checked-in', price: 3000, discount: 0, usedQuota: true },
-    { id: 41, date: getPastDate(7), machine: 'Bay 2 (Foresight)', time: '11:00 - 12:00', customerName: 'คุณนภา', phone: '0843334455', email: 'napa@mail.com', lineId: 'napa_line', withCoach: true, coachName: 'โค้ชบี', status: 'checked-in', price: 2500, discount: 0, usedQuota: true },
-    { id: 42, date: getPastDate(7), machine: 'Bay 1 (Trackman)', time: '14:00 - 15:00', customerName: 'คุณธนา', phone: '0892223344', email: 'thana@mail.com', lineId: 'thana_line', withCoach: true, coachName: 'โค้ชเอ', status: 'checked-in', price: 3500, discount: 0, usedQuota: false },
-    { id: 43, date: getPastDate(7), machine: 'Bay 2 (Foresight)', time: '16:00 - 17:00', customerName: 'Ms. Sarah', phone: '0887778899', email: 'sarah@email.com', lineId: '', withCoach: true, coachName: 'โค้ชบี', status: 'checked-in', price: 2500, discount: 0, usedQuota: false },
-    // --- 10 days ago ---
-    { id: 50, date: getPastDate(10), machine: 'Bay 1 (Trackman)', time: '10:00 - 11:00', customerName: 'คุณพิชัย', phone: '0854445566', email: 'pichai@mail.com', lineId: '', withCoach: true, coachName: 'โค้ชเอ', status: 'checked-in', price: 3500, discount: 0, usedQuota: true },
-    { id: 51, date: getPastDate(10), machine: 'Bay 2 (Foresight)', time: '13:00 - 14:00', customerName: 'คุณอรุณ', phone: '0865556677', email: 'arun@mail.com', lineId: 'arun_golf', withCoach: true, coachName: 'โค้ชซี', status: 'checked-in', price: 2500, discount: 0, usedQuota: false },
-    { id: 52, date: getPastDate(10), machine: 'Bay 1 (Trackman)', time: '15:00 - 16:00', customerName: 'คุณสมชาย', phone: '0812345678', email: 'somchai@test.com', lineId: 'somchai123', withCoach: true, coachName: 'โค้ชเอ', status: 'checked-in', price: 3000, discount: 0, usedQuota: true },
-    // --- 14 days ago ---
-    { id: 60, date: getPastDate(14), machine: 'Bay 1 (Trackman)', time: '10:00 - 11:00', customerName: 'คุณวิภา', phone: '0861112233', email: 'wipa@mail.com', lineId: '', withCoach: true, coachName: 'โค้ชเอ', status: 'checked-in', price: 3500, discount: 0, usedQuota: true },
-    { id: 61, date: getPastDate(14), machine: 'Bay 2 (Foresight)', time: '11:00 - 12:00', customerName: 'คุณจอห์น', phone: '0887776666', email: 'john@mail.com', lineId: 'john_doe', withCoach: true, coachName: 'โค้ชบี', status: 'checked-in', price: 2500, discount: 0, usedQuota: true },
-    { id: 62, date: getPastDate(14), machine: 'Bay 3', time: '14:00 - 15:00', customerName: 'Mr. Tanaka', phone: '0876667788', email: 'tanaka@jp.com', lineId: '', withCoach: true, coachName: 'โค้ชซี', status: 'checked-in', price: 2000, discount: 0, usedQuota: false },
-  ]);
-
-  const [members, setMembers] = useState([
-    { phone: '0812345678', name: 'คุณสมชาย', lineId: 'somchai123', email: 'somchai@test.com', trackmanHours: 5, trackmanBought: 10, trackmanCoach: 'โค้ชเอ', foresightHours: 10, foresightBought: 10, foresightCoach: 'โค้ชบี' },
-    { phone: '0898765432', name: 'คุณสมศรี', lineId: 'somsri_line', email: 'somsri@mail.com', trackmanHours: 0, trackmanBought: 0, trackmanCoach: '', foresightHours: 7, foresightBought: 10, foresightCoach: 'โค้ชบี' },
-    { phone: '0887776666', name: 'คุณจอห์น', lineId: 'john_doe', email: 'john@mail.com', trackmanHours: 8, trackmanBought: 20, trackmanCoach: 'โค้ชเอ', foresightHours: 15, foresightBought: 20, foresightCoach: 'โค้ชบี' },
-    { phone: '0861112233', name: 'คุณวิภา', lineId: '', email: 'wipa@mail.com', trackmanHours: 6, trackmanBought: 10, trackmanCoach: 'โค้ชเอ', foresightHours: 0, foresightBought: 0, foresightCoach: '' },
-    { phone: '0892223344', name: 'คุณธนา', lineId: 'thana_line', email: 'thana@mail.com', trackmanHours: 3, trackmanBought: 10, trackmanCoach: 'โค้ชเอ', foresightHours: 0, foresightBought: 0, foresightCoach: '' },
-    { phone: '0843334455', name: 'คุณนภา', lineId: 'napa_line', email: 'napa@mail.com', trackmanHours: 4, trackmanBought: 10, trackmanCoach: 'โค้ชเอ', foresightHours: 5, foresightBought: 10, foresightCoach: 'โค้ชบี' },
-    { phone: '0854445566', name: 'คุณพิชัย', lineId: '', email: 'pichai@mail.com', trackmanHours: 9, trackmanBought: 10, trackmanCoach: 'โค้ชเอ', foresightHours: 3, foresightBought: 10, foresightCoach: 'โค้ชบี' },
-    { phone: '0865556677', name: 'คุณอรุณ', lineId: 'arun_golf', email: 'arun@mail.com', trackmanHours: 0, trackmanBought: 0, trackmanCoach: '', foresightHours: 8, foresightBought: 10, foresightCoach: 'โค้ชซี' },
-    { phone: '0876667788', name: 'Mr. Tanaka', lineId: '', email: 'tanaka@jp.com', trackmanHours: 0, trackmanBought: 0, trackmanCoach: '', foresightHours: 0, foresightBought: 0, foresightCoach: '' },
-    { phone: '0887778899', name: 'Ms. Sarah', lineId: '', email: 'sarah@email.com', trackmanHours: 0, trackmanBought: 0, trackmanCoach: '', foresightHours: 5, foresightBought: 10, foresightCoach: 'โค้ชบี' },
-  ]);
-
-  // Lesson Notes state
-  const [lessonNotes, setLessonNotes] = useState([
-    // --- คุณสมชาย กับ โค้ชเอ (4 ครั้ง) ---
-    { id: 101, bookingId: 52, coachName: 'โค้ชเอ', customerPhone: '0812345678', customerName: 'คุณสมชาย', date: getPastDate(10), lessonNumber: 1, topic: 'Grip & Stance พื้นฐาน', homework: 'ฝึกจับกริปที่บ้าน 15 นาที/วัน ทั้ง Overlapping และ Interlocking grip', notes: 'เริ่มต้นจากพื้นฐาน ลูกค้ายังจับกริปแน่นเกินไป แนะนำให้ผ่อนแรงมือ ท่ายืนค่อนข้างดี แต่ต้องปรับน้ำหนักตัวให้กระจายสม่ำเสมอ เท้าทั้งสองข้างกว้างเท่าไหล่ หัวไหล่ตรง ไม่เกร็ง', attachments: [], createdAt: getPastDate(10) },
-    { id: 102, bookingId: 40, coachName: 'โค้ชเอ', customerPhone: '0812345678', customerName: 'คุณสมชาย', date: getPastDate(7), lessonNumber: 2, topic: 'Swing Basic - Half Swing', homework: 'ฝึก Half Swing ด้วย Iron 7 ที่บ้าน 20 สวิง/วัน เน้นจังหวะช้าๆ', notes: 'กริปดีขึ้นมาก วันนี้เริ่ม Half Swing สอนเรื่อง takeaway ให้ไม้ขนานพื้น ลูกค้าเข้าใจเร็ว แต่ยังมีปัญหาเรื่อง hip rotation ต้องฝึกเพิ่ม tempo ยังไม่สม่ำเสมอ', attachments: [], createdAt: getPastDate(7) },
-    { id: 103, bookingId: 22, coachName: 'โค้ชเอ', customerPhone: '0812345678', customerName: 'คุณสมชาย', date: getPastDate(3), lessonNumber: 3, topic: 'Full Swing - Iron 7', homework: 'ฝึก Full Swing ที่ driving range 30 ลูก/วัน เน้น follow through ให้จบท่าสวย', notes: 'วันนี้ต่อยอดจาก Half Swing เป็น Full Swing ด้วย Iron 7 ลูกค้าเข้าใจ weight transfer ดีขึ้น แต่ยังตั้งศอกขวาสูงเกิน ทำให้เกิด slice บ้าง ปรับแก้ให้ศอกแนบลำตัวมากขึ้น ช่วง downswing ดีขึ้นเยอะ', attachments: [], createdAt: getPastDate(3) },
-    { id: 104, bookingId: 10, coachName: 'โค้ชเอ', customerPhone: '0812345678', customerName: 'คุณสมชาย', date: getPastDate(1), lessonNumber: 4, topic: 'Iron Play - Distance Control', homework: 'ฝึกตี Iron 7, 8, 9 อย่างละ 20 ลูก เน้นระยะสม่ำเสมอ จดระยะแต่ละไม้', notes: 'ลูกค้าพัฒนาขึ้นมาก สวิงสม่ำเสมอดี วันนี้สอนเรื่องการควบคุมระยะ ใช้ Trackman วัดระยะจริง Iron 7 ได้ 140 หลา Iron 8 ได้ 130 หลา ค่อนข้างตรง Dispersion ดี ครั้งหน้าจะเริ่มสอน Short Game', attachments: [], createdAt: getPastDate(1) },
-
-    // --- คุณวิภา กับ โค้ชเอ (2 ครั้ง) ---
-    { id: 201, bookingId: 60, coachName: 'โค้ชเอ', customerPhone: '0861112233', customerName: 'คุณวิภา', date: getPastDate(14), lessonNumber: 1, topic: 'เริ่มต้นเรียนกอล์ฟ - Grip & Posture', homework: 'ฝึกจับกริปกับไม้กอล์ฟที่บ้าน 10 นาทีทุกวัน ดูวิดีโอที่ส่งให้ในไลน์', notes: 'ลูกค้าเพิ่งเริ่มเล่นกอล์ฟเป็นครั้งแรก สอนตั้งแต่พื้นฐาน วิธีจับไม้ ท่ายืน การวางลูก ลูกค้าตั้งใจเรียนมาก ท่าทางดี แต่ยังเกร็งไหล่ แนะนำให้ relax มากขึ้น', attachments: [], createdAt: getPastDate(14) },
-    { id: 202, bookingId: 30, coachName: 'โค้ชเอ', customerPhone: '0861112233', customerName: 'คุณวิภา', date: getPastDate(5), lessonNumber: 2, topic: 'Chipping รอบกรีน', homework: 'ฝึก chipping ด้วย PW ที่สนามซ้อม 20 ลูก/วัน ระยะ 10-20 หลา', notes: 'ข้ามไปสอน chipping ก่อนเพราะลูกค้าอยากเล่นจริงกับเพื่อน สอนเทคนิค bump and run ด้วย PW ลูกค้าเรียนรู้เร็ว ตีได้ค่อนข้างดี ball contact สม่ำเสมอ ครั้งหน้าจะกลับมาสอน full swing', attachments: [], createdAt: getPastDate(5) },
-
-    // --- คุณธนา กับ โค้ชเอ (2 ครั้ง) ---
-    { id: 301, bookingId: 42, coachName: 'โค้ชเอ', customerPhone: '0892223344', customerName: 'คุณธนา', date: getPastDate(7), lessonNumber: 1, topic: 'Driver - แก้ Slice', homework: 'ฝึกตี Driver ที่ driving range 20 ลูก เน้น inside-out path ตามที่สอน', notes: 'ลูกค้ามีประสบการณ์แล้วแต่มีปัญหา slice ตลอด วิเคราะห์ด้วย Trackman พบว่า club path เป็น outside-in มาก face angle เปิด สอนปรับ setup ให้ไหล่ปิดเล็กน้อย และ swing path ให้เป็น inside-out ลูกดีขึ้นทันทีแต่ยังไม่สม่ำเสมอ', attachments: [], createdAt: getPastDate(7) },
-    { id: 302, bookingId: 12, coachName: 'โค้ชเอ', customerPhone: '0892223344', customerName: 'คุณธนา', date: getPastDate(1), lessonNumber: 2, topic: 'Driver - ต่อยอดแก้ Slice + เพิ่มระยะ', homework: 'ฝึก driver 30 ลูก/วัน เน้น tempo ช้าลง อย่าเร่ง downswing', notes: 'Slice ลดลงมากจากครั้งก่อน club path ดีขึ้น ตอนนี้ตีตรงได้ 60% วันนี้เพิ่มเรื่อง lag ใน downswing เพื่อเพิ่มระยะ ลูกค้ามีแนวโน้มเร่ง transition ทำให้เสีย lag แนะนำ drill ปล่อยมือช้าลง ระยะเพิ่มจาก 200 เป็น 220 หลา', attachments: [], createdAt: getPastDate(1) },
-
-    // --- คุณนภา กับ โค้ชเอ (1 ครั้ง) + โค้ชบี (1 ครั้ง) ---
-    { id: 401, bookingId: 20, coachName: 'โค้ชเอ', customerPhone: '0843334455', customerName: 'คุณนภา', date: getPastDate(3), lessonNumber: 1, topic: 'Putting - การอ่านกรีนเบื้องต้น', homework: 'ฝึก putting ระยะ 3-6 ฟุต ที่บ้านบนพรม 20 ลูก/วัน เน้น straight back straight through', notes: 'ลูกค้าต้องการพัฒนา putting โดยเฉพาะ สอนเรื่อง aim กับ green reading เบื้องต้น ใช้ alignment stick ช่วย setup ค่อนข้าง yip เล็กน้อย แนะนำให้จับ putter ด้วย cross-hand grip ช่วยลด yip ได้ผลดี', attachments: [], createdAt: getPastDate(3) },
-    { id: 402, bookingId: 41, coachName: 'โค้ชบี', customerPhone: '0843334455', customerName: 'คุณนภา', date: getPastDate(7), lessonNumber: 1, topic: 'Long Iron & Hybrid', homework: 'ฝึกตี Hybrid ที่ driving range 30 ลูก เน้นตีลง ball first', notes: 'ลูกค้ามีปัญหาตี long iron ไม่ได้ระยะ สอนเปลี่ยนมาใช้ Hybrid แทน Iron 4 สอนเทคนิคตี Hybrid ให้ sweep มากกว่า Iron ลูกค้าปรับตัวได้เร็ว ระยะดีขึ้นทันที', attachments: [], createdAt: getPastDate(7) },
-
-    // --- คุณจอห์น กับ โค้ชเอ (1 ครั้ง) + โค้ชบี (2 ครั้ง) ---
-    { id: 501, bookingId: 32, coachName: 'โค้ชเอ', customerPhone: '0887776666', customerName: 'คุณจอห์น', date: getPastDate(5), lessonNumber: 1, topic: 'Wedge Play - Pitch Shot 50-80 หลา', homework: 'ฝึก pitch shot ด้วย SW ระยะ 50 หลา 30 ลูก/วัน', notes: 'ลูกค้ามีพื้นฐานดีอยู่แล้ว ต้องการพัฒนา scoring zone สอน pitch shot ด้วย Sand Wedge ใช้เทคนิค clock system (9 นาฬิกา 10 นาฬิกา 11 นาฬิกา) ลูกค้าเข้าใจระบบดี ตีได้ค่อนข้างแม่น', attachments: [], createdAt: getPastDate(5) },
-    { id: 502, bookingId: 61, coachName: 'โค้ชบี', customerPhone: '0887776666', customerName: 'คุณจอห์น', date: getPastDate(14), lessonNumber: 1, topic: 'Foresight - Launch Monitor Analysis', homework: 'จด stats จากการซ้อมทุกครั้ง เทียบกับ baseline ที่วัดไว้', notes: 'ใช้ Foresight วิเคราะห์สวิงทุกไม้ตั้งแต่ Driver ถึง PW เก็บ baseline data ไว้เปรียบเทียบ spin rate กับ launch angle ดี carry distance ค่อนข้างสม่ำเสมอ จุดที่ต้องปรับคือ smash factor ของ Driver ยังต่ำกว่าที่ควร', attachments: [], createdAt: getPastDate(14) },
-    { id: 503, bookingId: 11, coachName: 'โค้ชบี', customerPhone: '0887776666', customerName: 'คุณจอห์น', date: getPastDate(1), lessonNumber: 2, topic: 'Driver Optimization - Smash Factor', homework: 'ฝึก driver เน้น center hit ใช้ impact tape 20 ลูก/วัน', notes: 'ตามผลจากครั้งก่อน smash factor ต่ำเพราะตีไม่ center face วันนี้ใช้ impact tape ติดหน้า Driver ฝึกตีกลาง face สอน tee height adjustment ลูกค้าปรับ smash factor จาก 1.42 เป็น 1.47 ระยะเพิ่ม 15 หลา', attachments: [], createdAt: getPastDate(1) },
-
-    // --- คุณสมศรี กับ โค้ชบี (2 ครั้ง) ---
-    { id: 601, bookingId: 31, coachName: 'โค้ชบี', customerPhone: '0898765432', customerName: 'คุณสมศรี', date: getPastDate(5), lessonNumber: 1, topic: 'เริ่มต้น - Grip, Stance, Alignment', homework: 'ฝึกจับกริปทุกวัน 10 นาที ดูวิดีโอที่แชร์ให้ในไลน์กลุ่ม', notes: 'ลูกค้าเพิ่งเริ่มเรียนกอล์ฟ อยากเล่นเป็นกิจกรรมออกกำลังกาย สอนตั้งแต่ต้น จับกริป ยืน aim ลูกค้ามีร่างกายยืดหยุ่นดี ท่า posture สวย แต่ยังจับไม้ไม่มั่นใจ ต้องฝึกเพิ่ม', attachments: [], createdAt: getPastDate(5) },
-
-    // --- คุณพิชัย กับ โค้ชเอ (1 ครั้ง) + โค้ชบี (1 ครั้ง) ---
-    { id: 701, bookingId: 50, coachName: 'โค้ชเอ', customerPhone: '0854445566', customerName: 'คุณพิชัย', date: getPastDate(10), lessonNumber: 1, topic: 'Course Management & Strategy', homework: 'วางแผนเกมล่วงหน้าก่อนลงสนาม เลือกไม้ตาม miss pattern ของตัวเอง', notes: 'ลูกค้าเล่นมานานแล้ว handicap ประมาณ 18 อยากลดสกอร์ สอนเรื่อง course management ไม่ต้องตีไกลทุกหลุม เลือกไม้ให้ปลอดภัย lay up เมื่อมีความเสี่ยง aim ตรงกลางกรีนแทนที่จะเล็งธง', attachments: [], createdAt: getPastDate(10) },
-    { id: 702, bookingId: 21, coachName: 'โค้ชบี', customerPhone: '0854445566', customerName: 'คุณพิชัย', date: getPastDate(3), lessonNumber: 1, topic: 'Bunker Play - Greenside Bunker', homework: 'ฝึก bunker shot ที่สนามซ้อม 20 ลูก ใช้เทคนิค open face + outside-in path', notes: 'ลูกค้ากลัว bunker มาก สอนเทคนิค splash shot จาก greenside bunker เปิดหน้าไม้ SW ตีทรายก่อนลูก 2 นิ้ว follow through ให้จบสูง ลูกค้าเริ่มมั่นใจขึ้นหลังตีออกจาก bunker ได้ 15 จาก 20 ลูก', attachments: [], createdAt: getPastDate(3) },
-
-    // --- คุณอรุณ กับ โค้ชซี (2 ครั้ง) ---
-    { id: 801, bookingId: 51, coachName: 'โค้ชซี', customerPhone: '0865556677', customerName: 'คุณอรุณ', date: getPastDate(10), lessonNumber: 1, topic: 'เริ่มต้นเรียนกอล์ฟ - ทำความรู้จักไม้กอล์ฟ', homework: 'ท่องชื่อไม้กอล์ฟแต่ละชนิดกับหน้าที่ ดูวิดีโอ YouTube ที่แนะนำ', notes: 'ลูกค้าไม่เคยเล่นกอล์ฟมาก่อนเลย สอนเรื่องพื้นฐานก่อน อธิบายไม้แต่ละชนิด Driver, Fairway Wood, Iron, Wedge, Putter ให้ลองถือและจับแต่ละตัว ลองสวิงเบาๆ ไม่ต้องตีลูกก่อน เน้นให้เข้าใจ concept', attachments: [], createdAt: getPastDate(10) },
-    { id: 802, bookingId: 23, coachName: 'โค้ชซี', customerPhone: '0865556677', customerName: 'คุณอรุณ', date: getPastDate(3), lessonNumber: 2, topic: 'Grip & Half Swing ด้วย Iron 7', homework: 'ฝึกสวิงหน้ากระจก 10 นาที/วัน ไม่ต้องใช้ลูก เน้นท่าทาง', notes: 'สอนจับกริป Overlapping ให้ลูกค้าจับได้ดี ไม่แน่นเกิน เริ่ม half swing ด้วย Iron 7 ลูกค้าทำได้ดีเกินคาด ตีลูกโดนทุกครั้ง ทิศทางยังไม่ตรงแต่ contact ดีมาก มีพรสวรรค์', attachments: [], createdAt: getPastDate(3) },
-
-    // --- Mr. Tanaka กับ โค้ชซี (2 ครั้ง) ---
-    { id: 901, bookingId: 62, coachName: 'โค้ชซี', customerPhone: '0876667788', customerName: 'Mr. Tanaka', date: getPastDate(14), lessonNumber: 1, topic: 'Swing Analysis & Baseline', homework: 'Practice tempo drill with metronome app, 72 BPM, 20 swings/day', notes: 'Japanese expat, experienced golfer HC ~12. Wants to improve consistency. Analyzed full swing on Foresight - good club speed 95mph but inconsistent strike pattern. Tends to get quick on downswing transition. Recommended tempo training to improve consistency.', attachments: [], createdAt: getPastDate(14) },
-    { id: 902, bookingId: 33, coachName: 'โค้ชซี', customerPhone: '0876667788', customerName: 'Mr. Tanaka', date: getPastDate(5), lessonNumber: 2, topic: 'Short Game - Flop Shot & Lob', homework: 'Practice lob shots with 60° wedge, 10 yards carry, 20 balls/day', notes: 'Tempo improved significantly from last session. Today focused on short game variety - flop shots and lob shots with 60° wedge. Tanaka-san learns fast but tends to decelerate on short shots. Emphasized commitment through the ball. Very good progress overall.', attachments: [], createdAt: getPastDate(5) },
-
-    // --- Ms. Sarah กับ โค้ชซี (1 ครั้ง) + โค้ชบี (1 ครั้ง) ---
-    { id: 1001, bookingId: 13, coachName: 'โค้ชซี', customerPhone: '0887778899', customerName: 'Ms. Sarah', date: getPastDate(1), lessonNumber: 1, topic: 'Beginner - First Golf Lesson', homework: 'Watch the 3 YouTube videos shared via LINE, practice grip at home 10 min/day', notes: 'First time golfer from Australia. Very enthusiastic. Started with basics - grip, stance, ball position. She has good athletic background (tennis) so coordination is excellent. Taught basic chip shot and she was hitting clean contacts by end of session. Great potential.', attachments: [], createdAt: getPastDate(1) },
-    { id: 1002, bookingId: 43, coachName: 'โค้ชบี', customerPhone: '0887778899', customerName: 'Ms. Sarah', date: getPastDate(7), lessonNumber: 1, topic: 'Foresight Session - Swing Speed Training', homework: 'Swing speed drills with alignment stick, 3 sets of 10 swings at max effort', notes: 'Used Foresight to measure baseline swing speed. Driver swing speed 75mph which is good for beginner female golfer. Focused on speed training drills to increase clubhead speed. By end of session reached 78mph. Also worked on launch angle optimization.', attachments: [], createdAt: getPastDate(7) },
-  ]);
+  // REMOVED HARDCODED DATA - now loaded from API
+  // Old bookings data removed (was line 720-754)
   const [isLessonNoteModalOpen, setIsLessonNoteModalOpen] = useState(false);
   const [editingLessonNote, setEditingLessonNote] = useState(null);
   const [lessonNoteForm, setLessonNoteForm] = useState({
@@ -1116,25 +1080,28 @@ export default function App() {
     }
   };
 
-  const saveBooking = (bookingData) => {
-    setBookings([...bookings, bookingData]);
+  const saveBooking = async (bookingData) => {
+    try {
+      const created = await api('/api/bookings', { method: 'POST', body: bookingData });
+      setBookings([...bookings, created]);
 
-    if (bookingData.usedQuota) {
-      const machineType = getMachineType(bookingData.machine);
-      setMembers(members.map(m => {
-        if (m.phone === bookingData.phone) {
-          if (machineType === 'trackman') {
-            return { ...m, trackmanHours: Math.max(0, m.trackmanHours - 1) };
-          } else if (machineType === 'foresight') {
-            return { ...m, foresightHours: Math.max(0, m.foresightHours - 1) };
-          }
+      if (bookingData.usedQuota) {
+        const machineType = getMachineType(bookingData.machine);
+        const member = members.find(m => m.phone === bookingData.phone);
+        if (member) {
+          const updateData = {};
+          if (machineType === 'trackman') updateData.trackmanHours = Math.max(0, member.trackmanHours - 1);
+          else if (machineType === 'foresight') updateData.foresightHours = Math.max(0, member.foresightHours - 1);
+          const updated = await api(`/api/members/${member.phone}`, { method: 'PUT', body: updateData });
+          setMembers(members.map(m => m.phone === member.phone ? updated : m));
         }
-        return m;
-      }));
-    }
+      }
 
-    if (bookingData.email) {
-      alert(`${t('alertCalendarSent')} ${bookingData.email} ${t('alertCalendarSentSuffix')}`);
+      if (bookingData.email) {
+        alert(`${t('alertCalendarSent')} ${bookingData.email} ${t('alertCalendarSentSuffix')}`);
+      }
+    } catch (err) {
+      console.error('Save booking error:', err);
     }
   };
 
@@ -1195,49 +1162,41 @@ export default function App() {
     }
   };
 
-  const savePackagePurchase = (data) => {
+  const savePackagePurchase = async (data) => {
     const pkg = data.package;
     const machineType = pkg.machineType;
     const coachName = data.coachName || '';
     const existingMember = members.find(m => m.phone === data.phone);
 
-    if (existingMember) {
-      setMembers(members.map(m => {
-        if (m.phone === data.phone) {
-          const updated = { ...m, name: data.name, email: data.email || m.email, lineId: data.lineId || m.lineId };
-          if (machineType === 'trackman') {
-            updated.trackmanHours = m.trackmanHours + pkg.hours;
-            updated.trackmanBought = m.trackmanBought + pkg.hours;
-            updated.trackmanCoach = coachName;
-          } else {
-            updated.foresightHours = m.foresightHours + pkg.hours;
-            updated.foresightBought = m.foresightBought + pkg.hours;
-            updated.foresightCoach = coachName;
-          }
-          return updated;
+    try {
+      if (existingMember) {
+        const updateData = { name: data.name, email: data.email || existingMember.email, lineId: data.lineId || existingMember.lineId };
+        if (machineType === 'trackman') {
+          updateData.trackmanHours = existingMember.trackmanHours + pkg.hours;
+          updateData.trackmanBought = existingMember.trackmanBought + pkg.hours;
+          updateData.trackmanCoach = coachName;
+        } else {
+          updateData.foresightHours = existingMember.foresightHours + pkg.hours;
+          updateData.foresightBought = existingMember.foresightBought + pkg.hours;
+          updateData.foresightCoach = coachName;
         }
-        return m;
-      }));
-    } else {
-      const newMember = {
-        phone: data.phone,
-        name: data.name,
-        email: data.email,
-        lineId: data.lineId,
-        trackmanHours: 0, trackmanBought: 0, trackmanCoach: '',
-        foresightHours: 0, foresightBought: 0, foresightCoach: '',
-      };
-      if (machineType === 'trackman') {
-        newMember.trackmanHours = pkg.hours;
-        newMember.trackmanBought = pkg.hours;
-        newMember.trackmanCoach = coachName;
+        const updated = await api(`/api/members/${data.phone}`, { method: 'PUT', body: updateData });
+        setMembers(members.map(m => m.phone === data.phone ? updated : m));
       } else {
-        newMember.foresightHours = pkg.hours;
-        newMember.foresightBought = pkg.hours;
-        newMember.foresightCoach = coachName;
+        const newMember = {
+          phone: data.phone, name: data.name, email: data.email, lineId: data.lineId,
+          trackmanHours: 0, trackmanBought: 0, trackmanCoach: '',
+          foresightHours: 0, foresightBought: 0, foresightCoach: '',
+        };
+        if (machineType === 'trackman') {
+          newMember.trackmanHours = pkg.hours; newMember.trackmanBought = pkg.hours; newMember.trackmanCoach = coachName;
+        } else {
+          newMember.foresightHours = pkg.hours; newMember.foresightBought = pkg.hours; newMember.foresightCoach = coachName;
+        }
+        const created = await api('/api/members', { method: 'POST', body: newMember });
+        setMembers([...members, created]);
       }
-      setMembers([...members, newMember]);
-    }
+    } catch (err) { console.error('Save purchase error:', err); }
     alert(`${t('alertPkgSuccess')} ${data.package.name} ${t('alertPkgSuccessSuffix')} ${coachName} • ${t('alertPkgAddedHours')} ${pkg.hours} ${t('hrsUnit')} ${machineType === 'trackman' ? 'Trackman' : 'Foresight'} ${t('alertPkgAddedSuffix')}`);
   };
 
@@ -1262,42 +1221,46 @@ export default function App() {
     setIsManageModalOpen(true);
   };
 
-  const updateBookingStatus = (id, newStatus) => {
-    setBookings(bookings.map(b => b.id === id ? { ...b, status: newStatus } : b));
-    setIsManageModalOpen(false);
+  const updateBookingStatus = async (id, newStatus) => {
+    try {
+      const updated = await api(`/api/bookings/${id}`, { method: 'PUT', body: { status: newStatus } });
+      setBookings(bookings.map(b => b.id === id ? updated : b));
+      setIsManageModalOpen(false);
+    } catch (err) { console.error('Update status error:', err); }
   };
 
-  const saveCoachAssignment = () => {
+  const saveCoachAssignment = async () => {
     if (!selectedBooking) return;
-    // Check conflict
     if (manageCoach && isCoachBusy(manageCoach, selectedBooking.date, selectedBooking.time, selectedBooking.id)) {
       alert(`${manageCoach} ${t('alertCoachBusyManage')} (${selectedBooking.time}) ${t('alertChooseAnotherCoach')}`);
       return;
     }
-    setBookings(bookings.map(b =>
-      b.id === selectedBooking.id ? { ...b, coachName: manageCoach, withCoach: manageCoach ? true : b.withCoach } : b
-    ));
-    setSelectedBooking({ ...selectedBooking, coachName: manageCoach, withCoach: manageCoach ? true : selectedBooking.withCoach });
-    alert(t('alertCoachSaved'));
+    try {
+      const updated = await api(`/api/bookings/${selectedBooking.id}`, { method: 'PUT', body: { coachName: manageCoach, withCoach: manageCoach ? true : selectedBooking.withCoach } });
+      setBookings(bookings.map(b => b.id === selectedBooking.id ? updated : b));
+      setSelectedBooking(updated);
+      alert(t('alertCoachSaved'));
+    } catch (err) { console.error('Save coach error:', err); }
   };
 
-  const handleCancelBooking = (booking) => {
+  const handleCancelBooking = async (booking) => {
     if (confirm(t('alertConfirmCancel'))) {
-      if (booking.usedQuota && booking.status !== 'checked-in') {
-        const machineType = getMachineType(booking.machine);
-        setMembers(members.map(m => {
-          if (m.phone === booking.phone) {
-            if (machineType === 'trackman') {
-              return { ...m, trackmanHours: m.trackmanHours + 1 };
-            } else if (machineType === 'foresight') {
-              return { ...m, foresightHours: m.foresightHours + 1 };
-            }
+      try {
+        if (booking.usedQuota && booking.status !== 'checked-in') {
+          const machineType = getMachineType(booking.machine);
+          const member = members.find(m => m.phone === booking.phone);
+          if (member) {
+            const updateData = {};
+            if (machineType === 'trackman') updateData.trackmanHours = member.trackmanHours + 1;
+            else if (machineType === 'foresight') updateData.foresightHours = member.foresightHours + 1;
+            const updatedMember = await api(`/api/members/${member.phone}`, { method: 'PUT', body: updateData });
+            setMembers(members.map(m => m.phone === member.phone ? updatedMember : m));
           }
-          return m;
-        }));
-      }
-      setBookings(bookings.filter((b) => b.id !== booking.id));
-      setIsManageModalOpen(false);
+        }
+        await api(`/api/bookings/${booking.id}`, { method: 'DELETE' });
+        setBookings(bookings.filter((b) => b.id !== booking.id));
+        setIsManageModalOpen(false);
+      } catch (err) { console.error('Cancel booking error:', err); }
     }
   };
 
@@ -1467,24 +1430,23 @@ export default function App() {
   const foresightPackages = activePackages.filter(p => p.machineType === 'foresight');
 
   // ---------------- AUTH HANDLERS ----------------
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setAuthError('');
-    const user = appUsers.find(u => u.phone === authPhone.trim() && u.password === authPassword);
-    if (!user) {
+    try {
+      const user = await api('/api/auth/login', { method: 'POST', body: { phone: authPhone.trim(), password: authPassword } });
+      setCurrentUser(user);
+      if (user.role === 'coach') setViewMode('coach-schedule');
+      else if (user.role === 'admin') setViewMode('daily');
+      else setViewMode('daily');
+      setAuthPhone('');
+      setAuthPassword('');
+    } catch (err) {
       setAuthError(t('errPhoneOrPassword'));
-      return;
     }
-    setCurrentUser(user);
-    if (user.role === 'coach') setViewMode('coach-schedule');
-    else if (user.role === 'admin') setViewMode('daily');
-    else setViewMode('daily');
-    setAuthPhone('');
-    setAuthPassword('');
-    setAuthError('');
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setAuthError('');
     if (!authName.trim() || !authPhone.trim() || !authPassword.trim()) {
@@ -1495,27 +1457,21 @@ export default function App() {
       setAuthError(t('errPasswordMin'));
       return;
     }
-    if (appUsers.some(u => u.phone === authPhone.trim())) {
+    try {
+      const newUser = await api('/api/auth/register', {
+        method: 'POST',
+        body: { name: authName.trim(), phone: authPhone.trim(), password: authPassword, role: 'customer' },
+      });
+      setAppUsers([...appUsers, newUser]);
+      setCurrentUser(newUser);
+      setViewMode('daily');
+      setAuthPhone('');
+      setAuthPassword('');
+      setAuthName('');
+      setAuthCoachName('');
+    } catch (err) {
       setAuthError(t('errPhoneUsed'));
-      return;
     }
-    const newUser = {
-      id: Date.now(),
-      name: authName.trim(),
-      phone: authPhone.trim(),
-      password: authPassword,
-      role: 'customer',
-      coachName: '',
-      avatar: '',
-    };
-    setAppUsers([...appUsers, newUser]);
-    setCurrentUser(newUser);
-    setViewMode('daily');
-    setAuthPhone('');
-    setAuthPassword('');
-    setAuthName('');
-    setAuthCoachName('');
-    setAuthError('');
   };
 
   const handleLogout = () => {
