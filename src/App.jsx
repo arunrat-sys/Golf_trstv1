@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
   ChevronLeft, ChevronRight, Calendar, User, Clock,
   Monitor, X, Shield, UserCircle, CalendarDays, GraduationCap,
@@ -7,8 +7,67 @@ import {
   FileText, Filter, TrendingUp, LogOut, LogIn, UserPlus, Eye, EyeOff, Lock,
   Settings, Plus, Trash2, Pencil, Percent, ToggleLeft, ToggleRight,
   Camera, ImagePlus, Star, Briefcase, BookOpen, ChevronDown, Info,
-  Paperclip, Globe
+  Paperclip, Globe, AlertCircle, Upload
 } from 'lucide-react';
+
+// ========== Toast Notification Component ==========
+const ToastContainer = ({ toasts, onDismiss }) => (
+  <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+    {toasts.map(toast => (
+      <div
+        key={toast.id}
+        className={`pointer-events-auto flex items-start gap-3 p-4 rounded-2xl shadow-2xl ring-1 backdrop-blur-sm ${toast.exiting ? 'toast-exit' : 'toast-enter'} ${
+          toast.type === 'success' ? 'bg-emerald-50 ring-emerald-200 text-emerald-800' :
+          toast.type === 'error' ? 'bg-red-50 ring-red-200 text-red-800' :
+          toast.type === 'warning' ? 'bg-amber-50 ring-amber-200 text-amber-800' :
+          'bg-blue-50 ring-blue-200 text-blue-800'
+        }`}
+      >
+        <div className="shrink-0 mt-0.5">
+          {toast.type === 'success' ? <CheckCircle2 size={20} className="text-emerald-500" /> :
+           toast.type === 'error' ? <XCircle size={20} className="text-red-500" /> :
+           toast.type === 'warning' ? <AlertCircle size={20} className="text-amber-500" /> :
+           <Info size={20} className="text-blue-500" />}
+        </div>
+        <p className="text-sm font-medium flex-1">{toast.message}</p>
+        <button onClick={() => onDismiss(toast.id)} className="shrink-0 text-gray-400 hover:text-gray-600 -mt-0.5">
+          <X size={16} />
+        </button>
+      </div>
+    ))}
+  </div>
+);
+
+// ========== Confirm Dialog Component ==========
+const ConfirmDialog = ({ open, title, message, type = 'warning', confirmLabel, cancelLabel, onConfirm, onCancel }) => {
+  if (!open) return null;
+  const colors = {
+    warning: { bg: 'bg-amber-50', ring: 'ring-amber-200', icon: <AlertCircle size={28} className="text-amber-500" />, btn: 'bg-amber-500 hover:bg-amber-600' },
+    danger: { bg: 'bg-red-50', ring: 'ring-red-200', icon: <Trash2 size={28} className="text-red-500" />, btn: 'bg-red-500 hover:bg-red-600' },
+    info: { bg: 'bg-blue-50', ring: 'ring-blue-200', icon: <Info size={28} className="text-blue-500" />, btn: 'bg-blue-500 hover:bg-blue-600' },
+    success: { bg: 'bg-emerald-50', ring: 'ring-emerald-200', icon: <CheckCircle2 size={28} className="text-emerald-500" />, btn: 'btn-primary' },
+  };
+  const c = colors[type] || colors.warning;
+  return (
+    <div className="modal-overlay" style={{ zIndex: 200 }} onClick={onCancel}>
+      <div className="modal-panel max-w-sm p-6 modal-enter" onClick={e => e.stopPropagation()}>
+        <div className={`w-14 h-14 ${c.bg} ring-1 ${c.ring} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+          {c.icon}
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">{title}</h3>
+        <p className="text-sm text-gray-500 text-center mb-6">{message}</p>
+        <div className="flex gap-3">
+          <button onClick={onCancel} className="flex-1 py-3 btn-secondary rounded-xl font-medium">
+            {cancelLabel || 'ยกเลิก'}
+          </button>
+          <button onClick={onConfirm} className={`flex-1 py-3 rounded-xl font-medium text-white transition-all ${c.btn}`}>
+            {confirmLabel || 'ยืนยัน'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // API Configuration
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -461,6 +520,52 @@ export default function App() {
   const currentLocale = LOCALE_MAP[lang] || 'th-TH';
   const DAYS_OF_WEEK = DAYS_OF_WEEK_MAP[lang] || DAYS_OF_WEEK_MAP.th;
 
+  // ========== Toast System ==========
+  const [toasts, setToasts] = useState([]);
+  const toastIdRef = useRef(0);
+  const showToast = useCallback((message, type = 'success', duration = 3500) => {
+    const id = ++toastIdRef.current;
+    setToasts(prev => [...prev, { id, message, type, exiting: false }]);
+    setTimeout(() => {
+      setToasts(prev => prev.map(t => t.id === id ? { ...t, exiting: true } : t));
+      setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 300);
+    }, duration);
+  }, []);
+  const dismissToast = useCallback((id) => {
+    setToasts(prev => prev.map(t => t.id === id ? { ...t, exiting: true } : t));
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 300);
+  }, []);
+
+  // ========== Confirm Dialog System ==========
+  const [confirmState, setConfirmState] = useState({ open: false, title: '', message: '', type: 'warning', confirmLabel: '', cancelLabel: '', onConfirm: null });
+  const showConfirm = useCallback(({ title, message, type = 'warning', confirmLabel, cancelLabel }) => {
+    return new Promise((resolve) => {
+      setConfirmState({
+        open: true, title, message, type,
+        confirmLabel: confirmLabel || t('confirm') || 'ยืนยัน',
+        cancelLabel: cancelLabel || t('cancel') || 'ยกเลิก',
+        onConfirm: () => { setConfirmState(prev => ({ ...prev, open: false })); resolve(true); },
+      });
+    });
+  }, [lang]);
+  const cancelConfirm = useCallback(() => { setConfirmState(prev => ({ ...prev, open: false })); }, []);
+
+  // ========== Logo State ==========
+  const [companyLogo, setCompanyLogo] = useState(() => localStorage.getItem('golf_company_logo') || '');
+  const handleLogoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 500000) { showToast(t('alertImageTooLarge'), 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target.result;
+      setCompanyLogo(dataUrl);
+      localStorage.setItem('golf_company_logo', dataUrl);
+      showToast(t('logoUpdated') || 'อัปเดตโลโก้แล้ว', 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
   const timeSlots = [];
   for (let i = START_HOUR; i < END_HOUR; i++) {
     timeSlots.push(`${i.toString().padStart(2, '0')}:00 - ${(i + 1).toString().padStart(2, '0')}:00`);
@@ -530,21 +635,22 @@ export default function App() {
 
   // Coach CRUD
   const handleSaveCoach = async () => {
-    if (!coachForm.name.trim()) { alert(t('alertEnterCoachName')); return; }
+    if (!coachForm.name.trim()) { showToast(t('alertEnterCoachName'), 'warning'); return; }
     try {
       if (editingCoachId) {
         const updated = await api(`/api/coaches/${editingCoachId}`, { method: 'PUT', body: { name: coachForm.name.trim(), price: Number(coachForm.price) || 1500, education: coachForm.education, expertise: coachForm.expertise, bio: coachForm.bio } });
         setCoaches(coaches.map(c => c.id === editingCoachId ? updated : c));
         setEditingCoachId(null);
+        showToast(t('saved') || 'บันทึกแล้ว', 'success');
       } else {
-        if (!coachForm.phone.trim()) { alert(t('coachPhone')); return; }
+        if (!coachForm.phone.trim()) { showToast(t('coachPhone'), 'warning'); return; }
         const created = await api('/api/coaches', { method: 'POST', body: { name: coachForm.name.trim(), price: Number(coachForm.price) || 1500, education: coachForm.education, expertise: coachForm.expertise, bio: coachForm.bio } });
         setCoaches([...coaches, created]);
         const newUser = await api('/api/auth/register', { method: 'POST', body: { name: coachForm.name.trim(), phone: coachForm.phone.trim(), password: coachForm.password || '1234', role: 'coach', coachName: coachForm.name.trim() } });
         setAppUsers([...appUsers, newUser]);
-        alert(`${t('coachAccountCreated')}\n${t('coachPhone')}: ${coachForm.phone.trim()}\n${t('coachPassword')}: ${coachForm.password || '1234'}`);
+        showToast(`${t('coachAccountCreated')} — ${coachForm.phone.trim()}`, 'success');
       }
-    } catch (err) { console.error('Save coach error:', err); alert(err.message); }
+    } catch (err) { console.error('Save coach error:', err); showToast(err.message, 'error'); }
     setCoachForm({ name: '', price: 1500, education: '', expertise: '', bio: '', phone: '', password: '1234' });
   };
   const handleEditCoach = (coach) => {
@@ -560,14 +666,13 @@ export default function App() {
     } catch (err) { console.error(err); }
   };
   const handleDeleteCoach = async (id) => {
-    if (confirm(t('alertDeleteCoach'))) {
-      try { await api(`/api/coaches/${id}`, { method: 'DELETE' }); setCoaches(coaches.filter(c => c.id !== id)); } catch (err) { console.error(err); }
-    }
+    const ok = await showConfirm({ title: t('deleteConfirmTitle') || 'ยืนยันการลบ', message: t('alertDeleteCoach'), type: 'danger', confirmLabel: t('delete') || 'ลบ' });
+    if (ok) { try { await api(`/api/coaches/${id}`, { method: 'DELETE' }); setCoaches(coaches.filter(c => c.id !== id)); showToast(t('deleted') || 'ลบแล้ว', 'success'); } catch (err) { console.error(err); } }
   };
 
   // Bay CRUD
   const handleSaveBay = async () => {
-    if (!bayForm.name.trim()) { alert(t('alertEnterBayName')); return; }
+    if (!bayForm.name.trim()) { showToast(t('alertEnterBayName'), 'warning'); return; }
     try {
       if (editingBayId) {
         const updated = await api(`/api/bays/${editingBayId}`, { method: 'PUT', body: { name: bayForm.name.trim(), type: bayForm.type || null, price: Number(bayForm.price) || 1000 } });
@@ -590,22 +695,21 @@ export default function App() {
     try { const updated = await api(`/api/bays/${id}`, { method: 'PUT', body: { active: !bay.active } }); setBays(bays.map(b => b.id === id ? updated : b)); } catch (err) { console.error(err); }
   };
   const handleDeleteBay = async (id) => {
-    if (confirm(t('alertDeleteBay'))) { try { await api(`/api/bays/${id}`, { method: 'DELETE' }); setBays(bays.filter(b => b.id !== id)); } catch (err) { console.error(err); } }
+    const ok = await showConfirm({ title: t('deleteConfirmTitle') || 'ยืนยันการลบ', message: t('alertDeleteBay'), type: 'danger', confirmLabel: t('delete') || 'ลบ' });
+    if (ok) { try { await api(`/api/bays/${id}`, { method: 'DELETE' }); setBays(bays.filter(b => b.id !== id)); showToast(t('deleted') || 'ลบแล้ว', 'success'); } catch (err) { console.error(err); } }
   };
 
   // User Delete (admin)
   const handleDeleteUser = async (id) => {
-    if (confirm(t('confirmDeleteUser'))) {
-      try {
-        await api(`/api/users/${id}`, { method: 'DELETE' });
-        setAppUsers(appUsers.filter(u => u.id !== id));
-      } catch (err) { console.error(err); }
+    const ok = await showConfirm({ title: t('deleteUser'), message: t('confirmDeleteUser'), type: 'danger', confirmLabel: t('delete') || 'ลบ' });
+    if (ok) {
+      try { await api(`/api/users/${id}`, { method: 'DELETE' }); setAppUsers(appUsers.filter(u => u.id !== id)); showToast(t('userDeleted'), 'success'); } catch (err) { console.error(err); }
     }
   };
 
   // Package CRUD
   const handleSavePackage = async () => {
-    if (!pkgForm.name.trim()) { alert(t('alertEnterPkgName')); return; }
+    if (!pkgForm.name.trim()) { showToast(t('alertEnterPkgName'), 'warning'); return; }
     try {
       if (editingPkgId) {
         const updated = await api(`/api/packages/${editingPkgId}`, { method: 'PUT', body: { ...pkgForm, name: pkgForm.name.trim(), hours: Number(pkgForm.hours), price: Number(pkgForm.price) } });
@@ -628,12 +732,13 @@ export default function App() {
     try { const updated = await api(`/api/packages/${id}`, { method: 'PUT', body: { active: !pkg.active } }); setPackages(packages.map(p => p.id === id ? updated : p)); } catch (err) { console.error(err); }
   };
   const handleDeletePackage = async (id) => {
-    if (confirm(t('alertDeletePkg'))) { try { await api(`/api/packages/${id}`, { method: 'DELETE' }); setPackages(packages.filter(p => p.id !== id)); } catch (err) { console.error(err); } }
+    const ok = await showConfirm({ title: t('deleteConfirmTitle') || 'ยืนยันการลบ', message: t('alertDeletePkg'), type: 'danger', confirmLabel: t('delete') || 'ลบ' });
+    if (ok) { try { await api(`/api/packages/${id}`, { method: 'DELETE' }); setPackages(packages.filter(p => p.id !== id)); showToast(t('deleted') || 'ลบแล้ว', 'success'); } catch (err) { console.error(err); } }
   };
 
   // Promo CRUD
   const handleSavePromo = async () => {
-    if (!promoForm.code.trim()) { alert(t('alertEnterPromoCode')); return; }
+    if (!promoForm.code.trim()) { showToast(t('alertEnterPromoCode'), 'warning'); return; }
     try {
       if (editingPromoId) {
         const updated = await api(`/api/promo-codes/${editingPromoId}`, { method: 'PUT', body: { ...promoForm, code: promoForm.code.trim().toUpperCase(), value: Number(promoForm.value) } });
@@ -656,7 +761,8 @@ export default function App() {
     try { const updated = await api(`/api/promo-codes/${id}`, { method: 'PUT', body: { active: !promo.active } }); setPromoCodes(promoCodes.map(p => p.id === id ? updated : p)); } catch (err) { console.error(err); }
   };
   const handleDeletePromo = async (id) => {
-    if (confirm(t('alertDeletePromo'))) { try { await api(`/api/promo-codes/${id}`, { method: 'DELETE' }); setPromoCodes(promoCodes.filter(p => p.id !== id)); } catch (err) { console.error(err); } }
+    const ok = await showConfirm({ title: t('deleteConfirmTitle') || 'ยืนยันการลบ', message: t('alertDeletePromo'), type: 'danger', confirmLabel: t('delete') || 'ลบ' });
+    if (ok) { try { await api(`/api/promo-codes/${id}`, { method: 'DELETE' }); setPromoCodes(promoCodes.filter(p => p.id !== id)); showToast(t('deleted') || 'ลบแล้ว', 'success'); } catch (err) { console.error(err); } }
   };
 
   // Coach profile modal
@@ -665,7 +771,7 @@ export default function App() {
   // Avatar upload helper
   const handleAvatarUpload = (file, callback) => {
     if (!file) return;
-    if (file.size > 500000) { alert(t('alertImageTooLarge')); return; }
+    if (file.size > 500000) { showToast(t('alertImageTooLarge'), 'error'); return; }
     const reader = new FileReader();
     reader.onload = (e) => callback(e.target.result);
     reader.readAsDataURL(file);
@@ -742,7 +848,7 @@ export default function App() {
   };
   const handleLessonNoteAttachment = (file) => {
     if (!file) return;
-    if (file.size > 2000000) { alert(t('fileTooLarge')); return; }
+    if (file.size > 2000000) { showToast(t('fileTooLarge'), 'error'); return; }
     const reader = new FileReader();
     reader.onload = (e) => {
       setLessonNoteForm(prev => ({
@@ -975,7 +1081,7 @@ export default function App() {
 
   const applyPromoCode = () => {
     if (useMemberQuota) {
-      alert(t('alertPromoNoQuota'));
+      showToast(t('alertPromoNoQuota'), 'warning');
       return;
     }
     const basePrice = selectedSlot ? getBasePrice(selectedSlot.machine) : 1000;
@@ -983,27 +1089,27 @@ export default function App() {
     const foundPromo = promoCodes.find(p => p.code === promoCode.trim().toUpperCase() && p.active);
     if (!foundPromo) {
       setDiscountAmount(0);
-      alert(t('alertPromoInvalid'));
+      showToast(t('alertPromoInvalid'), 'error');
       return;
     }
     if (foundPromo.expiryDate && new Date(foundPromo.expiryDate) < new Date()) {
       setDiscountAmount(0);
-      alert(t('alertPromoExpired'));
+      showToast(t('alertPromoExpired'), 'error');
       return;
     }
     if (foundPromo.type === 'percent') {
       const subtotal = basePrice + coachP;
       setDiscountAmount(subtotal * (foundPromo.value / 100));
-      alert(`${t('alertPromoSuccessPercent')} ${foundPromo.value}%`);
+      showToast(`${t('alertPromoSuccessPercent')} ${foundPromo.value}%`, 'success');
     } else {
       setDiscountAmount(foundPromo.value);
-      alert(`${t('alertPromoSuccessFixed')} ${foundPromo.value.toLocaleString()} ${t('bahtUnit')}`);
+      showToast(`${t('alertPromoSuccessFixed')} ${foundPromo.value.toLocaleString()} ${t('bahtUnit')}`, 'success');
     }
   };
 
   const openBookingModal = (machine, time) => {
     if (isSlotPassed(currentDate, time)) {
-      alert(t('alertTimePassed'));
+      showToast(t('alertTimePassed'), 'warning');
       return;
     }
     setSelectedSlot({ machine, time });
@@ -1045,7 +1151,7 @@ export default function App() {
   const handleBook = (e) => {
     e.preventDefault();
     if (!customerName.trim() || !phone.trim()) {
-      alert(t('alertFillNamePhone'));
+      showToast(t('alertFillNamePhone'), 'warning');
       return;
     }
 
@@ -1055,13 +1161,13 @@ export default function App() {
     if (useMemberQuota && foundMember && selectedSlot) {
       const machineType = getMachineType(selectedSlot.machine);
       if (!machineType) {
-        alert(t('alertBayNoMember'));
+        showToast(t('alertBayNoMember'), 'warning');
         setUseMemberQuota(false);
         return;
       }
       const availableHours = getMemberHoursForMachine(foundMember, selectedSlot.machine);
       if (availableHours <= 0) {
-        alert(`${machineType === 'trackman' ? 'Trackman' : 'Foresight'} ${t('alertHoursUsedUp')}`);
+        showToast(`${machineType === 'trackman' ? 'Trackman' : 'Foresight'} ${t('alertHoursUsedUp')}`, 'warning');
         setUseMemberQuota(false);
         return;
       }
@@ -1077,7 +1183,7 @@ export default function App() {
       coachPrice = 0;
       // Validate coach time conflict
       if (bookingCoach && isCoachBusy(bookingCoach, currentDate, selectedTime)) {
-        alert(`${bookingCoach} ${t('alertCourseCoachBusy')}`);
+        showToast(`${bookingCoach} ${t('alertCourseCoachBusy')}`, 'warning');
         return;
       }
     } else if (withCoach && selectedCoach) {
@@ -1085,7 +1191,7 @@ export default function App() {
       bookingCoach = selectedCoach;
       coachPrice = getCoachPrice(selectedCoach);
       if (isCoachBusy(selectedCoach, currentDate, selectedTime)) {
-        alert(`${selectedCoach} ${t('alertCoachBusy')}`);
+        showToast(`${selectedCoach} ${t('alertCoachBusy')}`, 'warning');
         return;
       }
     }
@@ -1126,7 +1232,7 @@ export default function App() {
       saveBooking(newBooking);
       setIsModalOpen(false);
       if (role === 'customer' && finalPrice === 0) {
-        alert(t('alertMemberBookingSuccess'));
+        showToast(t('alertMemberBookingSuccess'), 'success');
       }
     }
   };
@@ -1149,7 +1255,7 @@ export default function App() {
       }
 
       if (bookingData.email) {
-        alert(`${t('alertCalendarSent')} ${bookingData.email} ${t('alertCalendarSentSuffix')}`);
+        showToast(`${t('alertCalendarSent')} ${bookingData.email} ${t('alertCalendarSentSuffix')}`, 'success');
       }
     } catch (err) {
       console.error('Save booking error:', err);
@@ -1185,11 +1291,11 @@ export default function App() {
   const handleBuyPackage = (e) => {
     e.preventDefault();
     if (!pkgPhone.trim() || !pkgName.trim()) {
-      alert(t('alertFillNamePhonePkg'));
+      showToast(t('alertFillNamePhonePkg'), 'warning');
       return;
     }
     if (!pkgCoach) {
-      alert(t('alertSelectCoach'));
+      showToast(t('alertSelectCoach'), 'warning');
       return;
     }
 
@@ -1248,7 +1354,7 @@ export default function App() {
         setMembers([...members, created]);
       }
     } catch (err) { console.error('Save purchase error:', err); }
-    alert(`${t('alertPkgSuccess')} ${data.package.name} ${t('alertPkgSuccessSuffix')} ${coachName} • ${t('alertPkgAddedHours')} ${pkg.hours} ${t('hrsUnit')} ${machineType === 'trackman' ? 'Trackman' : 'Foresight'} ${t('alertPkgAddedSuffix')}`);
+    showToast(`${t('alertPkgSuccess')} ${data.package.name} — ${coachName} • ${pkg.hours} ${t('hrsUnit')} ${machineType === 'trackman' ? 'Trackman' : 'Foresight'}`, 'success', 5000);
   };
 
   // ---------------- SHARED PAYMENT CONFIRMATION ----------------
@@ -1264,7 +1370,7 @@ export default function App() {
   // ---------------- ADMIN ACTIONS ----------------
   const openManageModal = (booking) => {
     if (role === 'customer') {
-      alert(t('alertCustomerCannotEdit'));
+      showToast(t('alertCustomerCannotEdit'), 'warning');
       return;
     }
     setSelectedBooking(booking);
@@ -1283,19 +1389,20 @@ export default function App() {
   const saveCoachAssignment = async () => {
     if (!selectedBooking) return;
     if (manageCoach && isCoachBusy(manageCoach, selectedBooking.date, selectedBooking.time, selectedBooking.id)) {
-      alert(`${manageCoach} ${t('alertCoachBusyManage')} (${selectedBooking.time}) ${t('alertChooseAnotherCoach')}`);
+      showToast(`${manageCoach} ${t('alertCoachBusyManage')} (${selectedBooking.time}) ${t('alertChooseAnotherCoach')}`, 'warning');
       return;
     }
     try {
       const updated = await api(`/api/bookings/${selectedBooking.id}`, { method: 'PUT', body: { coachName: manageCoach, withCoach: manageCoach ? true : selectedBooking.withCoach } });
       setBookings(bookings.map(b => b.id === selectedBooking.id ? updated : b));
       setSelectedBooking(updated);
-      alert(t('alertCoachSaved'));
+      showToast(t('alertCoachSaved'), 'success');
     } catch (err) { console.error('Save coach error:', err); }
   };
 
   const handleCancelBooking = async (booking) => {
-    if (confirm(t('alertConfirmCancel'))) {
+    const ok = await showConfirm({ title: t('cancelBookingTitle') || 'ยกเลิกการจอง', message: t('alertConfirmCancel'), type: 'danger', confirmLabel: t('confirmCancel') || 'ยกเลิก' });
+    if (ok) {
       try {
         if (booking.usedQuota && booking.status !== 'checked-in') {
           const machineType = getMachineType(booking.machine);
@@ -1650,9 +1757,13 @@ export default function App() {
           </div>
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="bg-gradient-to-br from-[#FF7A05] to-[#ff9a3c] w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-200">
-              <Monitor size={32} className="text-white" />
-            </div>
+            {companyLogo ? (
+              <img src={companyLogo} alt="Logo" className="w-20 h-20 object-contain mx-auto mb-4 rounded-2xl" />
+            ) : (
+              <div className="bg-gradient-to-br from-[#FF7A05] to-[#ff9a3c] w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-200">
+                <Monitor size={32} className="text-white" />
+              </div>
+            )}
             <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Golf Simulator</h1>
             <p className="text-gray-400 text-sm mt-1">{t('systemSubtitle')}</p>
           </div>
@@ -1933,6 +2044,7 @@ export default function App() {
             )}
           </div>
         </div>
+        <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       </div>
     );
   }
@@ -3641,6 +3753,30 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Company Logo */}
+              <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-xl ring-1 ring-gray-100">
+                <div className="w-14 h-14 rounded-xl bg-white ring-1 ring-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                  {companyLogo ? (
+                    <img src={companyLogo} alt="Logo" className="w-full h-full object-contain" />
+                  ) : (
+                    <Monitor size={24} className="text-gray-300" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-700">{t('companyLogo') || 'โลโก้บริษัท'}</p>
+                  <p className="text-xs text-gray-400">{t('logoHint') || 'อัปโหลดโลโก้ (สูงสุด 500KB)'}</p>
+                </div>
+                <label className="btn-ghost px-3 py-2 text-sm cursor-pointer flex items-center gap-1.5">
+                  <Upload size={14} /> {t('upload') || 'อัปโหลด'}
+                  <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                </label>
+                {companyLogo && (
+                  <button onClick={() => { setCompanyLogo(''); localStorage.removeItem('golf_company_logo'); showToast('ลบโลโก้แล้ว', 'success'); }} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
+
               {/* Settings Tabs */}
               <div className="flex gap-1 bg-gray-100/80 p-1 rounded-xl mb-6 overflow-x-auto custom-scrollbar">
                 {[
@@ -4894,6 +5030,21 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirmState.open}
+        title={confirmState.title}
+        message={confirmState.message}
+        type={confirmState.type}
+        confirmLabel={confirmState.confirmLabel}
+        cancelLabel={confirmState.cancelLabel}
+        onConfirm={confirmState.onConfirm}
+        onCancel={cancelConfirm}
+      />
     </div>
   );
 }
