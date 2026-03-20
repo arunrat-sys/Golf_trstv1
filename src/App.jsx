@@ -2014,14 +2014,14 @@ export default function App() {
                                 <div
                                   onClick={() => openManageModal(booking)}
                                   className={`p-2.5 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all duration-200 group relative min-h-[66px] cursor-pointer ${
-                                    role === 'admin'
+                                    (role === 'admin' || role === 'coach')
                                       ? getStatusColor(booking.status)
                                       : currentUser && booking.phone === currentUser.phone
                                         ? 'bg-emerald-50 ring-1 ring-emerald-200 cursor-default'
                                         : 'bg-gray-50 ring-1 ring-gray-100 cursor-default opacity-60'
                                   }`}
                                 >
-                                  {role === 'admin' ? (
+                                  {(role === 'admin' || role === 'coach') ? (
                                     <>
                                       <span className="font-medium text-sm flex items-center gap-1">
                                         {booking.status === 'checked-in' && <CheckCircle2 size={14} className="text-emerald-500"/>}
