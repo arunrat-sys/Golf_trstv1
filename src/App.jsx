@@ -3830,165 +3830,110 @@ export default function App() {
               {adminTab === 'bays' && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center"><Monitor size={16} className="text-blue-600" /></div>
-                      <div><h4 className="text-sm font-semibold text-gray-900">{t('baysTab')}</h4><p className="text-xs text-gray-400">{bays.length} {t('items') || 'รายการ'}</p></div>
-                    </div>
-                    <button onClick={() => { setEditingBayId(null); setBayForm({ name: '', type: 'foresight', price: 1000 }); setShowBayFormModal(true); }} className="btn-primary px-4 py-2 flex items-center gap-1.5 text-sm">
-                      <Plus size={15} /> {t('addBay')}
-                    </button>
+                    <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2"><Monitor size={15} className="text-blue-500" /> {t('baysTab')} <span className="text-xs font-normal text-gray-400">({bays.length})</span></h4>
+                    <button onClick={() => { setEditingBayId(null); setBayForm({ name: '', type: 'foresight', price: 1000 }); setShowBayFormModal(true); }} className="btn-primary px-3 py-1.5 flex items-center gap-1.5 text-sm"><Plus size={14} /> {t('addBay')}</button>
                   </div>
-                  <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
-                    {bays.map((bay) => (
-                      <div key={bay.id} className={`flex items-center justify-between p-4 rounded-xl ring-1 transition-all ${bay.active ? 'bg-white ring-gray-200' : 'bg-gray-50 ring-gray-100 opacity-60'}`}>
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                            bay.type === 'trackman' ? 'bg-blue-100 text-blue-600' :
-                            bay.type === 'foresight' ? 'bg-emerald-100 text-emerald-600' :
-                            'bg-gray-100 text-gray-500'
-                          }`}>
-                            <Monitor size={16} />
-                          </div>
-                          <div>
-                            <div className="font-medium text-gray-900 text-sm">{bay.name}</div>
-                            <div className="text-xs text-gray-400 flex items-center gap-2">
-                              {bay.type && <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${bay.type === 'trackman' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'}`}>{bay.type === 'trackman' ? 'Trackman' : 'Foresight'}</span>}
-                              <span>฿{bay.price.toLocaleString()}/ชม.</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => handleToggleBay(bay.id)} className={`p-2 rounded-lg transition-colors ${bay.active ? 'text-emerald-500 hover:bg-emerald-50' : 'text-gray-400 hover:bg-gray-100'}`}>
-                            {bay.active ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
-                          </button>
-                          <button onClick={() => { handleEditBay(bay); setShowBayFormModal(true); }} className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
-                            <Pencil size={16} />
-                          </button>
-                          <button onClick={() => handleDeleteBay(bay.id)} className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="overflow-auto custom-scrollbar max-h-[50vh]">
+                    <table className="w-full text-left border-collapse min-w-[500px]">
+                      <thead className="sticky top-0 bg-white z-10">
+                        <tr className="border-b border-gray-200 text-xs text-gray-500">
+                          <th className="px-3 py-2.5 font-medium bg-white">{t('bayNamePlaceholder') || 'ชื่อเบย์'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white">{t('machineType') || 'ประเภท'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white text-right">{t('pricePerHour') || 'ราคา'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white text-center">{t('statusCol') || 'สถานะ'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white text-center">{t('actions') || 'จัดการ'}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {bays.map(bay => (
+                          <tr key={bay.id} className={`border-b border-gray-50 table-row-hover ${!bay.active ? 'opacity-50' : ''}`}>
+                            <td className="px-3 py-2.5 text-sm font-medium text-gray-900">{bay.name}</td>
+                            <td className="px-3 py-2.5">{bay.type ? <span className={`badge text-[10px] ${bay.type === 'trackman' ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-200' : 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200'}`}>{bay.type === 'trackman' ? 'Trackman' : 'Foresight'}</span> : <span className="text-xs text-gray-300">—</span>}</td>
+                            <td className="px-3 py-2.5 text-sm text-right text-gray-700">฿{bay.price.toLocaleString()}/ชม.</td>
+                            <td className="px-3 py-2.5 text-center"><button onClick={() => handleToggleBay(bay.id)} className={`transition-colors ${bay.active ? 'text-emerald-500' : 'text-gray-300'}`}>{bay.active ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}</button></td>
+                            <td className="px-3 py-2.5 text-center"><div className="flex items-center justify-center gap-1"><button onClick={() => { handleEditBay(bay); setShowBayFormModal(true); }} className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"><Pencil size={14} /></button><button onClick={() => handleDeleteBay(bay.id)} className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"><Trash2 size={14} /></button></div></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                     {bays.length === 0 && <div className="text-center py-8 text-gray-400 text-sm">{t('noBays')}</div>}
                   </div>
                 </div>
               )}
 
               {/* ========== COACHES TAB ========== */}
-              {adminTab === 'coaches' && (
+              {adminTab === 'coaches' && (() => {
+                const filteredCoaches = coaches.filter(c => { if (!coachSearch.trim()) return true; const q = coachSearch.toLowerCase(); return c.name.toLowerCase().includes(q) || (c.expertise||'').toLowerCase().includes(q); });
+                return (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2"><GraduationCap size={15} className="text-purple-500" /> {t('coachesTab')} <span className="text-xs font-normal text-gray-400">({filteredCoaches.length})</span></h4>
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center"><GraduationCap size={16} className="text-purple-600" /></div>
-                      <div><h4 className="text-sm font-semibold text-gray-900">{t('coachesTab')}</h4><p className="text-xs text-gray-400">{coaches.length} {t('items') || 'รายการ'}</p></div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="relative">
-                        <Filter size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input type="text" className="input-field pl-8 py-1.5 text-xs w-40" placeholder={t('searchCoachPlaceholder') || 'ค้นหา...'} value={coachSearch} onChange={(e) => setCoachSearch(e.target.value)} />
-                      </div>
-                      <button onClick={() => { setEditingCoachId(null); setCoachForm({ name: '', price: 1500, education: '', expertise: '', bio: '', phone: '', password: '1234' }); setShowCoachFormModal(true); }} className="btn-primary px-3 py-1.5 flex items-center gap-1.5 text-sm shrink-0">
-                        <Plus size={14} /> {t('addCoach')}
-                      </button>
+                      <div className="relative"><Filter size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" /><input type="text" className="input-field pl-8 py-1.5 text-xs w-40" placeholder={t('searchCoachPlaceholder') || 'ค้นหา...'} value={coachSearch} onChange={(e) => setCoachSearch(e.target.value)} /></div>
+                      <button onClick={() => { setEditingCoachId(null); setCoachForm({ name: '', price: 1500, education: '', expertise: '', bio: '', phone: '', password: '1234' }); setShowCoachFormModal(true); }} className="btn-primary px-3 py-1.5 flex items-center gap-1.5 text-sm shrink-0"><Plus size={14} /> {t('addCoach')}</button>
                     </div>
                   </div>
-                  <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
-                    {coaches.filter(c => {
-                      if (!coachSearch.trim()) return true;
-                      const q = coachSearch.toLowerCase();
-                      return c.name.toLowerCase().includes(q) || (c.expertise || '').toLowerCase().includes(q);
-                    }).map((coach) => (
-                      <div key={coach.id} className={`p-4 rounded-xl ring-1 transition-all ${coach.active ? 'bg-white ring-gray-200' : 'bg-gray-50 ring-gray-100 opacity-60'}`}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <label className="relative cursor-pointer group">
-                              <Avatar src={coach.avatar} name={coach.name} size={40} />
-                              <div className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/40 flex items-center justify-center transition-all">
-                                <Camera size={14} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                              </div>
-                              <input type="file" accept="image/*" className="hidden" onChange={(e) => handleCoachAvatarUpload(coach.id, e.target.files[0])} />
-                            </label>
-                            <div>
-                              <div className="font-medium text-gray-900 text-sm">{coach.name}</div>
-                              <div className="text-xs text-gray-400">฿{coach.price.toLocaleString()}/ชม.</div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button onClick={() => handleToggleCoach(coach.id)} className={`p-2 rounded-lg transition-colors ${coach.active ? 'text-emerald-500 hover:bg-emerald-50' : 'text-gray-400 hover:bg-gray-100'}`}>
-                              {coach.active ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
-                            </button>
-                            <button onClick={() => { handleEditCoach(coach); setShowCoachFormModal(true); }} className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
-                              <Pencil size={16} />
-                            </button>
-                            <button onClick={() => handleDeleteCoach(coach.id)} className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-                        {(coach.education || coach.expertise || coach.bio) && (
-                          <div className="mt-2 ml-13 pl-[52px] text-xs text-gray-400 space-y-0.5 border-t border-gray-50 pt-2">
-                            {coach.education && <div><span className="text-gray-500">{t('educationLabel')}</span> {coach.education}</div>}
-                            {coach.expertise && <div><span className="text-gray-500">{t('expertiseLabel')}</span> {coach.expertise}</div>}
-                            {coach.bio && <div><span className="text-gray-500">{t('bioLabel')}</span> {coach.bio}</div>}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                    {coaches.filter(c => {
-                      if (!coachSearch.trim()) return true;
-                      const q = coachSearch.toLowerCase();
-                      return c.name.toLowerCase().includes(q) || (c.expertise || '').toLowerCase().includes(q);
-                    }).length === 0 && <div className="text-center py-8 text-gray-400 text-sm">{t('noCoaches')}</div>}
+                  <div className="overflow-auto custom-scrollbar max-h-[50vh]">
+                    <table className="w-full text-left border-collapse min-w-[600px]">
+                      <thead className="sticky top-0 bg-white z-10">
+                        <tr className="border-b border-gray-200 text-xs text-gray-500">
+                          <th className="px-3 py-2.5 font-medium bg-white">{t('coachNamePH') || 'ชื่อโค้ช'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white text-right">{t('pricePerHourBaht') || 'ราคา/ชม.'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white">{t('expertisePH') || 'ความเชี่ยวชาญ'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white text-center">{t('statusCol') || 'สถานะ'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white text-center">{t('actions') || 'จัดการ'}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredCoaches.map(coach => (
+                          <tr key={coach.id} className={`border-b border-gray-50 table-row-hover ${!coach.active ? 'opacity-50' : ''}`}>
+                            <td className="px-3 py-2.5"><div className="flex items-center gap-2.5"><Avatar src={coach.avatar} name={coach.name} size={30} /><div><div className="text-sm font-medium text-gray-900">{coach.name}</div>{coach.education && <div className="text-[11px] text-gray-400">{coach.education}</div>}</div></div></td>
+                            <td className="px-3 py-2.5 text-sm text-right text-gray-700">฿{coach.price.toLocaleString()}</td>
+                            <td className="px-3 py-2.5 text-xs text-gray-500">{coach.expertise || <span className="text-gray-300">—</span>}</td>
+                            <td className="px-3 py-2.5 text-center"><button onClick={() => handleToggleCoach(coach.id)} className={`transition-colors ${coach.active ? 'text-emerald-500' : 'text-gray-300'}`}>{coach.active ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}</button></td>
+                            <td className="px-3 py-2.5 text-center"><div className="flex items-center justify-center gap-1"><button onClick={() => { handleEditCoach(coach); setShowCoachFormModal(true); }} className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"><Pencil size={14} /></button><button onClick={() => handleDeleteCoach(coach.id)} className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"><Trash2 size={14} /></button></div></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {filteredCoaches.length === 0 && <div className="text-center py-8 text-gray-400 text-sm">{t('noCoaches')}</div>}
                   </div>
                 </div>
-              )}
+                );
+              })()}
 
               {/* ========== PACKAGES TAB ========== */}
               {adminTab === 'packages' && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center"><ShoppingCart size={16} className="text-orange-600" /></div>
-                      <div><h4 className="text-sm font-semibold text-gray-900">{t('packagesTab')}</h4><p className="text-xs text-gray-400">{packages.length} {t('items') || 'รายการ'}</p></div>
-                    </div>
-                    <button onClick={() => { setEditingPkgId(null); setPkgForm({ name: '', hours: 1, price: 0, machineType: 'trackman', highlight: false, save: '', desc: '' }); setShowPkgFormModal(true); }} className="btn-primary px-3 py-1.5 flex items-center gap-1.5 text-sm">
-                      <Plus size={14} /> {t('addPkg')}
-                    </button>
+                    <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2"><ShoppingCart size={15} className="text-orange-500" /> {t('packagesTab')} <span className="text-xs font-normal text-gray-400">({packages.length})</span></h4>
+                    <button onClick={() => { setEditingPkgId(null); setPkgForm({ name: '', hours: 1, price: 0, machineType: 'trackman', highlight: false, save: '', desc: '' }); setShowPkgFormModal(true); }} className="btn-primary px-3 py-1.5 flex items-center gap-1.5 text-sm"><Plus size={14} /> {t('addPkg')}</button>
                   </div>
-                  <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
-                    {packages.map((pkg) => (
-                      <div key={pkg.id} className={`flex items-center justify-between p-4 rounded-xl ring-1 transition-all ${pkg.active !== false ? 'bg-white ring-gray-200' : 'bg-gray-50 ring-gray-100 opacity-60'}`}>
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${pkg.machineType === 'trackman' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                            <ShoppingCart size={16} />
-                          </div>
-                          <div>
-                            <div className="font-medium text-gray-900 text-sm flex items-center gap-2">
-                              {pkg.name}
-                              {pkg.highlight && <span className="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full font-medium">{t('popular')}</span>}
-                            </div>
-                            <div className="text-xs text-gray-400 flex items-center gap-2">
-                              <span>{pkg.hours} ชม.</span>
-                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${pkg.machineType === 'trackman' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'}`}>{pkg.machineType === 'trackman' ? 'Trackman' : 'Foresight'}</span>
-                              <span className="font-semibold text-gray-600">฿{pkg.price.toLocaleString()}</span>
-                              {pkg.save && <span className="text-emerald-500">{pkg.save}</span>}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => handleTogglePackage(pkg.id)} className={`p-2 rounded-lg transition-colors ${pkg.active !== false ? 'text-emerald-500 hover:bg-emerald-50' : 'text-gray-400 hover:bg-gray-100'}`}>
-                            {pkg.active !== false ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
-                          </button>
-                          <button onClick={() => { handleEditPackage(pkg); setShowPkgFormModal(true); }} className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
-                            <Pencil size={16} />
-                          </button>
-                          <button onClick={() => handleDeletePackage(pkg.id)} className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="overflow-auto custom-scrollbar max-h-[50vh]">
+                    <table className="w-full text-left border-collapse min-w-[650px]">
+                      <thead className="sticky top-0 bg-white z-10">
+                        <tr className="border-b border-gray-200 text-xs text-gray-500">
+                          <th className="px-3 py-2.5 font-medium bg-white">{t('pkgNamePH') || 'ชื่อแพ็กเกจ'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white">{t('machineType') || 'ประเภท'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white text-center">{t('numHours') || 'ชั่วโมง'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white text-right">{t('priceBaht') || 'ราคา'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white text-center">{t('statusCol') || 'สถานะ'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white text-center">{t('actions') || 'จัดการ'}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {packages.map(pkg => (
+                          <tr key={pkg.id} className={`border-b border-gray-50 table-row-hover ${pkg.active === false ? 'opacity-50' : ''}`}>
+                            <td className="px-3 py-2.5 text-sm font-medium text-gray-900">{pkg.name} {pkg.highlight && <span className="badge text-[10px] bg-orange-50 text-orange-600 ring-1 ring-orange-200 ml-1">{t('popular')}</span>}</td>
+                            <td className="px-3 py-2.5"><span className={`badge text-[10px] ${pkg.machineType === 'trackman' ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-200' : 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200'}`}>{pkg.machineType === 'trackman' ? 'Trackman' : 'Foresight'}</span></td>
+                            <td className="px-3 py-2.5 text-sm text-center text-gray-700">{pkg.hours}</td>
+                            <td className="px-3 py-2.5 text-sm text-right font-medium text-gray-800">฿{pkg.price.toLocaleString()}</td>
+                            <td className="px-3 py-2.5 text-center"><button onClick={() => handleTogglePackage(pkg.id)} className={`transition-colors ${pkg.active !== false ? 'text-emerald-500' : 'text-gray-300'}`}>{pkg.active !== false ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}</button></td>
+                            <td className="px-3 py-2.5 text-center"><div className="flex items-center justify-center gap-1"><button onClick={() => { handleEditPackage(pkg); setShowPkgFormModal(true); }} className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"><Pencil size={14} /></button><button onClick={() => handleDeletePackage(pkg.id)} className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"><Trash2 size={14} /></button></div></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                     {packages.length === 0 && <div className="text-center py-8 text-gray-400 text-sm">{t('noPackages')}</div>}
                   </div>
                 </div>
@@ -3998,109 +3943,72 @@ export default function App() {
               {adminTab === 'promos' && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center"><Tag size={16} className="text-amber-600" /></div>
-                      <div><h4 className="text-sm font-semibold text-gray-900">{t('promosTab')}</h4><p className="text-xs text-gray-400">{promoCodes.length} {t('items') || 'รายการ'}</p></div>
-                    </div>
-                    <button onClick={() => { setEditingPromoId(null); setPromoForm({ code: '', type: 'percent', value: 0, expiryDate: '' }); setShowPromoFormModal(true); }} className="btn-primary px-3 py-1.5 flex items-center gap-1.5 text-sm">
-                      <Plus size={14} /> {t('addPromo')}
-                    </button>
+                    <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2"><Tag size={15} className="text-amber-500" /> {t('promosTab')} <span className="text-xs font-normal text-gray-400">({promoCodes.length})</span></h4>
+                    <button onClick={() => { setEditingPromoId(null); setPromoForm({ code: '', type: 'percent', value: 0, expiryDate: '' }); setShowPromoFormModal(true); }} className="btn-primary px-3 py-1.5 flex items-center gap-1.5 text-sm"><Plus size={14} /> {t('addPromo')}</button>
                   </div>
-                  <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
-                    {promoCodes.map((promo) => (
-                      <div key={promo.id} className={`flex items-center justify-between p-4 rounded-xl ring-1 transition-all ${promo.active ? 'bg-white ring-gray-200' : 'bg-gray-50 ring-gray-100 opacity-60'}`}>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center">
-                            <Tag size={16} />
-                          </div>
-                          <div>
-                            <div className="font-mono font-semibold text-gray-900 text-sm">{promo.code}</div>
-                            <div className="text-xs text-gray-400 flex items-center gap-2">
-                              <span className="font-medium text-[#FF7A05]">
-                                {promo.type === 'percent' ? `ลด ${promo.value}%` : `ลด ฿${promo.value.toLocaleString()}`}
-                              </span>
-                              {promo.expiryDate ? (
-                                <span className={new Date(promo.expiryDate) < new Date() ? 'text-red-500' : 'text-gray-400'}>
-                                  {t('expired')} {new Date(promo.expiryDate).toLocaleDateString(currentLocale)}
-                                  {new Date(promo.expiryDate) < new Date() && ' ' + t('alreadyExpired')}
-                                </span>
-                              ) : (
-                                <span>{t('noExpiry')}</span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => handleTogglePromo(promo.id)} className={`p-2 rounded-lg transition-colors ${promo.active ? 'text-emerald-500 hover:bg-emerald-50' : 'text-gray-400 hover:bg-gray-100'}`}>
-                            {promo.active ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
-                          </button>
-                          <button onClick={() => { handleEditPromo(promo); setShowPromoFormModal(true); }} className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
-                            <Pencil size={16} />
-                          </button>
-                          <button onClick={() => handleDeletePromo(promo.id)} className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="overflow-auto custom-scrollbar max-h-[50vh]">
+                    <table className="w-full text-left border-collapse min-w-[550px]">
+                      <thead className="sticky top-0 bg-white z-10">
+                        <tr className="border-b border-gray-200 text-xs text-gray-500">
+                          <th className="px-3 py-2.5 font-medium bg-white">{t('promoCodePH') || 'โค้ด'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white">{t('discountType') || 'ส่วนลด'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white">{t('expiryDate') || 'วันหมดอายุ'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white text-center">{t('statusCol') || 'สถานะ'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white text-center">{t('actions') || 'จัดการ'}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {promoCodes.map(promo => (
+                          <tr key={promo.id} className={`border-b border-gray-50 table-row-hover ${!promo.active ? 'opacity-50' : ''}`}>
+                            <td className="px-3 py-2.5 text-sm font-mono font-semibold text-gray-900">{promo.code}</td>
+                            <td className="px-3 py-2.5 text-sm font-medium text-[#FF7A05]">{promo.type === 'percent' ? `${promo.value}%` : `฿${promo.value.toLocaleString()}`}</td>
+                            <td className="px-3 py-2.5 text-sm">{promo.expiryDate ? <span className={new Date(promo.expiryDate) < new Date() ? 'text-red-500' : 'text-gray-500'}>{new Date(promo.expiryDate).toLocaleDateString(currentLocale)}{new Date(promo.expiryDate) < new Date() && ` (${t('alreadyExpired')})`}</span> : <span className="text-gray-300">{t('noExpiry')}</span>}</td>
+                            <td className="px-3 py-2.5 text-center"><button onClick={() => handleTogglePromo(promo.id)} className={`transition-colors ${promo.active ? 'text-emerald-500' : 'text-gray-300'}`}>{promo.active ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}</button></td>
+                            <td className="px-3 py-2.5 text-center"><div className="flex items-center justify-center gap-1"><button onClick={() => { handleEditPromo(promo); setShowPromoFormModal(true); }} className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"><Pencil size={14} /></button><button onClick={() => handleDeletePromo(promo.id)} className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"><Trash2 size={14} /></button></div></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                     {promoCodes.length === 0 && <div className="text-center py-8 text-gray-400 text-sm">{t('noPromos')}</div>}
                   </div>
                 </div>
               )}
 
               {/* ========== USERS TAB ========== */}
-              {adminTab === 'users' && (
+              {adminTab === 'users' && (() => {
+                const filteredUsers = appUsers.filter(u => u.id !== currentUser?.id).filter(u => { if (!userSearch.trim()) return true; const q = userSearch.toLowerCase(); return u.name.toLowerCase().includes(q) || u.phone.toLowerCase().includes(q); });
+                return (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center"><Users size={16} className="text-sky-600" /></div>
-                      <div><h4 className="text-sm font-semibold text-gray-900">{t('usersTab')}</h4><p className="text-xs text-gray-400">{appUsers.length} {t('items') || 'รายการ'}</p></div>
-                    </div>
-                    <div className="relative">
-                      <Filter size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                      <input type="text" className="input-field pl-8 py-1.5 text-xs w-44" placeholder={t('searchUserPlaceholder') || 'ค้นหา...'} value={userSearch} onChange={(e) => setUserSearch(e.target.value)} />
-                    </div>
+                    <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2"><Users size={15} className="text-sky-500" /> {t('usersTab')} <span className="text-xs font-normal text-gray-400">({filteredUsers.length})</span></h4>
+                    <div className="relative"><Filter size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" /><input type="text" className="input-field pl-8 py-1.5 text-xs w-44" placeholder={t('searchUserPlaceholder') || 'ค้นหา...'} value={userSearch} onChange={(e) => setUserSearch(e.target.value)} /></div>
                   </div>
-                  <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
-                  {appUsers.filter(u => u.id !== currentUser?.id).filter(u => {
-                    if (!userSearch.trim()) return true;
-                    const q = userSearch.toLowerCase();
-                    return u.name.toLowerCase().includes(q) || u.phone.toLowerCase().includes(q) || u.role.toLowerCase().includes(q);
-                  }).map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 rounded-xl ring-1 bg-white ring-gray-200 transition-all">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                          user.role === 'admin' ? 'bg-red-100 text-red-600' :
-                          user.role === 'coach' ? 'bg-purple-100 text-purple-600' :
-                          'bg-blue-100 text-blue-600'
-                        }`}>
-                          <UserCircle size={16} />
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900 text-sm">{user.name}</div>
-                          <div className="text-xs text-gray-400 flex items-center gap-2">
-                            <span>{user.phone}</span>
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                              user.role === 'admin' ? 'bg-red-50 text-red-600' :
-                              user.role === 'coach' ? 'bg-purple-50 text-purple-600' :
-                              'bg-blue-50 text-blue-600'
-                            }`}>{user.role}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <button onClick={() => handleDeleteUser(user.id)} className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))}
-                  {appUsers.filter(u => u.id !== currentUser?.id).filter(u => {
-                    if (!userSearch.trim()) return true;
-                    const q = userSearch.toLowerCase();
-                    return u.name.toLowerCase().includes(q) || u.phone.toLowerCase().includes(q);
-                  }).length === 0 && <div className="text-center py-8 text-gray-400 text-sm">{t('noUsers')}</div>}
+                  <div className="overflow-auto custom-scrollbar max-h-[50vh]">
+                    <table className="w-full text-left border-collapse min-w-[500px]">
+                      <thead className="sticky top-0 bg-white z-10">
+                        <tr className="border-b border-gray-200 text-xs text-gray-500">
+                          <th className="px-3 py-2.5 font-medium bg-white">{t('fullName') || 'ชื่อ'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white">{t('phone') || 'เบอร์โทร'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white text-center">{t('accountType') || 'ประเภท'}</th>
+                          <th className="px-3 py-2.5 font-medium bg-white text-center">{t('actions') || 'จัดการ'}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredUsers.map(user => (
+                          <tr key={user.id} className="border-b border-gray-50 table-row-hover">
+                            <td className="px-3 py-2.5 text-sm font-medium text-gray-900">{user.name}</td>
+                            <td className="px-3 py-2.5 text-sm text-gray-500">{user.phone}</td>
+                            <td className="px-3 py-2.5 text-center"><span className={`badge text-[10px] ${user.role === 'admin' ? 'bg-red-50 text-red-600 ring-1 ring-red-200' : user.role === 'coach' ? 'bg-purple-50 text-purple-600 ring-1 ring-purple-200' : 'bg-blue-50 text-blue-600 ring-1 ring-blue-200'}`}>{user.role}</span></td>
+                            <td className="px-3 py-2.5 text-center"><button onClick={() => handleDeleteUser(user.id)} className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"><Trash2 size={14} /></button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {filteredUsers.length === 0 && <div className="text-center py-8 text-gray-400 text-sm">{t('noUsers')}</div>}
                   </div>
                 </div>
-              )}
+                );
+              })()}
             </div>
           </div>
         )}
