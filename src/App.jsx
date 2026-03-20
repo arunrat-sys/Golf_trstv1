@@ -584,7 +584,7 @@ export default function App() {
     if (confirm(t('confirmDeleteUser'))) {
       try {
         await api(`/api/users/${id}`, { method: 'DELETE' });
-        setUsers(users.filter(u => u.id !== id));
+        setAppUsers(appUsers.filter(u => u.id !== id));
       } catch (err) { console.error(err); }
     }
   };
@@ -3888,7 +3888,7 @@ export default function App() {
               {/* ========== USERS TAB ========== */}
               {adminTab === 'users' && (
                 <div className="space-y-2">
-                  {users.filter(u => u.id !== currentUser?.id).map((user) => (
+                  {appUsers.filter(u => u.id !== currentUser?.id).map((user) => (
                     <div key={user.id} className="flex items-center justify-between p-4 rounded-xl ring-1 bg-white ring-gray-200 transition-all">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
@@ -3915,7 +3915,7 @@ export default function App() {
                       </button>
                     </div>
                   ))}
-                  {users.length <= 1 && <div className="text-center py-8 text-gray-400 text-sm">{t('noUsers')}</div>}
+                  {appUsers.length <= 1 && <div className="text-center py-8 text-gray-400 text-sm">{t('noUsers')}</div>}
                 </div>
               )}
             </div>
