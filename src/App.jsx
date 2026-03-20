@@ -3919,7 +3919,7 @@ export default function App() {
       {/* 1. Modal จัดการการจอง (แอดมิน) */}
       {isManageModalOpen && selectedBooking && (
         <div className="modal-overlay" onClick={() => setIsManageModalOpen(false)}>
-          <div className="modal-panel p-6 max-w-sm animate-in" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-panel p-6 max-w-sm max-h-[90vh] overflow-y-auto custom-scrollbar animate-in" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-5">
               <h2 className="text-lg font-semibold text-gray-900">{t('manageBooking')}</h2>
               <button
@@ -4503,7 +4503,7 @@ export default function App() {
       {/* 4. Payment Modal */}
       {isPaymentModalOpen && isPaymentModalOpen.data && (
         <div className="modal-overlay" onClick={() => setIsPaymentModalOpen(false)}>
-          <div className="modal-panel p-6 max-w-sm text-center" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-panel p-6 max-w-sm max-h-[90vh] overflow-y-auto custom-scrollbar text-center" onClick={(e) => e.stopPropagation()}>
             <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <QrCode size={36} className="text-[#FF7A05]" />
             </div>
@@ -4632,7 +4632,7 @@ export default function App() {
 
       {viewingCoach && (
         <div className="modal-overlay" onClick={() => setViewingCoach(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto custom-scrollbar" onClick={e => e.stopPropagation()}>
             {/* Cover / Avatar area */}
             <div className="bg-gray-100 h-24 relative">
               <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
