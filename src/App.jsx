@@ -624,6 +624,8 @@ export default function App() {
 
   // Admin settings UI state
   const [adminTab, setAdminTab] = useState('bays');
+  const [userSearch, setUserSearch] = useState('');
+  const [coachSearch, setCoachSearch] = useState('');
   const [bayForm, setBayForm] = useState({ name: '', type: 'foresight', price: 1000 });
   const [editingBayId, setEditingBayId] = useState(null);
   const [pkgForm, setPkgForm] = useState({ name: '', hours: 1, price: 0, machineType: 'trackman', highlight: false, save: '', desc: '' });
@@ -3965,9 +3967,23 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Coach List */}
-                  <div className="space-y-2">
-                    {coaches.map((coach) => (
+                  {/* Coach Search + List */}
+                  <div className="relative mb-3">
+                    <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      className="input-field pl-10"
+                      placeholder={t('searchCoachPlaceholder') || 'ค้นหาชื่อโค้ช...'}
+                      value={coachSearch}
+                      onChange={(e) => setCoachSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
+                    {coaches.filter(c => {
+                      if (!coachSearch.trim()) return true;
+                      const q = coachSearch.toLowerCase();
+                      return c.name.toLowerCase().includes(q) || (c.expertise || '').toLowerCase().includes(q);
+                    }).map((coach) => (
                       <div key={coach.id} className={`p-4 rounded-xl ring-1 transition-all ${coach.active ? 'bg-white ring-gray-200' : 'bg-gray-50 ring-gray-100 opacity-60'}`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -4004,7 +4020,11 @@ export default function App() {
                         )}
                       </div>
                     ))}
-                    {coaches.length === 0 && <div className="text-center py-8 text-gray-400 text-sm">{t('noCoaches')}</div>}
+                    {coaches.filter(c => {
+                      if (!coachSearch.trim()) return true;
+                      const q = coachSearch.toLowerCase();
+                      return c.name.toLowerCase().includes(q) || (c.expertise || '').toLowerCase().includes(q);
+                    }).length === 0 && <div className="text-center py-8 text-gray-400 text-sm">{t('noCoaches')}</div>}
                   </div>
                 </div>
               )}
@@ -4227,8 +4247,24 @@ export default function App() {
 
               {/* ========== USERS TAB ========== */}
               {adminTab === 'users' && (
-                <div className="space-y-2">
-                  {appUsers.filter(u => u.id !== currentUser?.id).map((user) => (
+                <div className="space-y-3">
+                  {/* Search */}
+                  <div className="relative">
+                    <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      className="input-field pl-10"
+                      placeholder={t('searchUserPlaceholder') || 'ค้นหาชื่อ หรือเบอร์โทร...'}
+                      value={userSearch}
+                      onChange={(e) => setUserSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2 max-h-[50vh] overflow-y-auto custom-scrollbar pr-1">
+                  {appUsers.filter(u => u.id !== currentUser?.id).filter(u => {
+                    if (!userSearch.trim()) return true;
+                    const q = userSearch.toLowerCase();
+                    return u.name.toLowerCase().includes(q) || u.phone.toLowerCase().includes(q) || u.role.toLowerCase().includes(q);
+                  }).map((user) => (
                     <div key={user.id} className="flex items-center justify-between p-4 rounded-xl ring-1 bg-white ring-gray-200 transition-all">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
@@ -4255,7 +4291,12 @@ export default function App() {
                       </button>
                     </div>
                   ))}
-                  {appUsers.length <= 1 && <div className="text-center py-8 text-gray-400 text-sm">{t('noUsers')}</div>}
+                  {appUsers.filter(u => u.id !== currentUser?.id).filter(u => {
+                    if (!userSearch.trim()) return true;
+                    const q = userSearch.toLowerCase();
+                    return u.name.toLowerCase().includes(q) || u.phone.toLowerCase().includes(q);
+                  }).length === 0 && <div className="text-center py-8 text-gray-400 text-sm">{t('noUsers')}</div>}
+                  </div>
                 </div>
               )}
             </div>
