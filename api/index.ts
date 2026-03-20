@@ -109,6 +109,10 @@ export default async function handler(req: any, res: any) {
         const user = await queryOne(`UPDATE "User" SET ${sets.join(', ')} WHERE id = $${i} RETURNING *`, vals);
         return json(res, user);
       }
+      if (method === 'DELETE') {
+        await query('DELETE FROM "User" WHERE id = $1', [id]);
+        return json(res, { success: true });
+      }
     }
 
     // ===== COACHES =====

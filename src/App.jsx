@@ -170,6 +170,11 @@ const TRANSLATIONS = {
   coachesTab: { th: 'โค้ช', en: 'Coaches', ja: 'コーチ', ru: 'Тренеры', zh: '教练' },
   packagesTab: { th: 'แพ็คเกจ', en: 'Packages', ja: 'パッケージ', ru: 'Пакеты', zh: '套餐' },
   promosTab: { th: 'โปรโมโค้ด', en: 'Promo Codes', ja: 'プロモコード', ru: 'Промокоды', zh: '优惠码' },
+  usersTab: { th: 'ผู้ใช้', en: 'Users', ja: 'ユーザー', ru: 'Пользователи', zh: '用户' },
+  deleteUser: { th: 'ลบผู้ใช้', en: 'Delete User', ja: 'ユーザー削除', ru: 'Удалить', zh: '删除用户' },
+  confirmDeleteUser: { th: 'ต้องการลบผู้ใช้นี้หรือไม่? ผู้ใช้จะสามารถสมัครสมาชิกใหม่ได้', en: 'Delete this user? They can re-register.', ja: 'このユーザーを削除しますか？再登録可能です。', ru: 'Удалить пользователя? Он сможет зарегистрироваться снова.', zh: '删除此用户？他们可以重新注册。' },
+  noUsers: { th: 'ไม่มีผู้ใช้', en: 'No users', ja: 'ユーザーなし', ru: 'Нет пользователей', zh: '暂无用户' },
+  userDeleted: { th: 'ลบผู้ใช้แล้ว', en: 'User deleted', ja: 'ユーザーを削除しました', ru: 'Пользователь удалён', zh: '用户已删除' },
   editBay: { th: 'แก้ไขเบย์', en: 'Edit Bay', ja: 'ベイ編集', ru: 'Редакт. бейс', zh: '编辑球道' },
   addBay: { th: 'เพิ่มเบย์ใหม่', en: 'Add New Bay', ja: '新規ベイ追加', ru: 'Добавить бейс', zh: '添加新球道' },
   bayNamePlaceholder: { th: 'ชื่อเบย์ เช่น Bay 5 (Trackman)', en: 'Bay name e.g. Bay 5 (Trackman)', ja: 'ベイ名 例: Bay 5 (Trackman)', ru: 'Название напр. Bay 5 (Trackman)', zh: '球道名 例如 Bay 5 (Trackman)' },
@@ -557,6 +562,16 @@ export default function App() {
   };
   const handleDeleteBay = async (id) => {
     if (confirm(t('alertDeleteBay'))) { try { await api(`/api/bays/${id}`, { method: 'DELETE' }); setBays(bays.filter(b => b.id !== id)); } catch (err) { console.error(err); } }
+  };
+
+  // User Delete (admin)
+  const handleDeleteUser = async (id) => {
+    if (confirm(t('confirmDeleteUser'))) {
+      try {
+        await api(`/api/users/${id}`, { method: 'DELETE' });
+        setUsers(users.filter(u => u.id !== id));
+      } catch (err) { console.error(err); }
+    }
   };
 
   // Package CRUD
@@ -3398,6 +3413,7 @@ export default function App() {
                   { key: 'coaches', label: t('coachesTab'), icon: <GraduationCap size={15} /> },
                   { key: 'packages', label: t('packagesTab'), icon: <ShoppingCart size={15} /> },
                   { key: 'promos', label: t('promosTab'), icon: <Percent size={15} /> },
+                  { key: 'users', label: t('usersTab'), icon: <Users size={15} /> },
                 ].map(tab => (
                   <button
                     key={tab.key}
@@ -3837,6 +3853,40 @@ export default function App() {
                   </div>
                 </div>
               )}
+
+              {/* ========== USERS TAB ========== */}
+              {adminTab === 'users' && (
+                <div className="space-y-2">
+                  {users.filter(u => u.id !== currentUser?.id).map((user) => (
+                    <div key={user.id} className="flex items-center justify-between p-4 rounded-xl ring-1 bg-white ring-gray-200 transition-all">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                          user.role === 'admin' ? 'bg-red-100 text-red-600' :
+                          user.role === 'coach' ? 'bg-purple-100 text-purple-600' :
+                          'bg-blue-100 text-blue-600'
+                        }`}>
+                          <UserCircle size={16} />
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900 text-sm">{user.name}</div>
+                          <div className="text-xs text-gray-400 flex items-center gap-2">
+                            <span>{user.phone}</span>
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                              user.role === 'admin' ? 'bg-red-50 text-red-600' :
+                              user.role === 'coach' ? 'bg-purple-50 text-purple-600' :
+                              'bg-blue-50 text-blue-600'
+                            }`}>{user.role}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <button onClick={() => handleDeleteUser(user.id)} className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                  {users.length <= 1 && <div className="text-center py-8 text-gray-400 text-sm">{t('noUsers')}</div>}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -4162,7 +4212,7 @@ export default function App() {
                   {withCoach && (
                     <div>
                       <label className="text-gray-600 text-sm font-medium mb-1.5 block">{t('selectCoach')}</label>
-                      <div className="space-y-2">
+                      <div className="space-y-2 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
                         {getAvailableCoaches(currentDate, selectedTime).map(c => {
                           const info = getCoachInfo(c.name);
                           const daySchedule = getCoachDaySchedule(c.name, currentDate);
@@ -4301,7 +4351,7 @@ export default function App() {
       {/* 3. Modal ซื้อแพ็กเกจ/คอร์ส */}
       {isPackageModalOpen && selectedPackage && (
         <div className="modal-overlay" onClick={() => setIsPackageModalOpen(false)}>
-          <div className="modal-panel p-6 max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-panel p-6 max-w-md max-h-[90vh] overflow-y-auto custom-scrollbar" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-5">
               <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <ShoppingCart size={20} className="text-[#FF7A05]"/> {t('buyCourseTitle')}
@@ -4382,7 +4432,7 @@ export default function App() {
                 <label className="flex items-center gap-2 text-gray-600 text-sm font-medium mb-2">
                   <GraduationCap size={14} className="text-purple-500" /> {t('selectCourseCoach')}
                 </label>
-                <div className="space-y-2">
+                <div className="space-y-2 max-h-[40vh] overflow-y-auto custom-scrollbar pr-1">
                   {activeCoaches.map(c => (
                     <label
                       key={c.name}
