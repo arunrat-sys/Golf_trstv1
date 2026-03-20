@@ -325,6 +325,8 @@ const TRANSLATIONS = {
   alertHoursUsedUp: { th: 'หมดแล้ว กรุณาซื้อเพิ่มในเมนูสมาชิก', en: 'Used up. Please buy more in Members menu', ja: '残りなし。会員メニューで追加購入してください', ru: 'Использовано. Купите ещё', zh: '已用完，请在会员菜单购买更多' },
   alertCourseCoachBusy: { th: '(โค้ชประจำคอร์ส) ไม่ว่างในเวลานี้ กรุณาเลือกเวลาอื่น', en: '(Course coach) is busy at this time. Please choose another time', ja: '（コースコーチ）はこの時間帯は予約済みです。別の時間を選択してください', ru: '(Тренер курса) занят. Выберите другое время', zh: '（课程教练）此时间忙碌，请选择其他时间' },
   alertCoachBusy: { th: 'ไม่ว่างในเวลานี้ กรุณาเลือกโค้ชท่านอื่นหรือเปลี่ยนเวลา', en: 'is busy at this time. Please choose another coach or time', ja: 'はこの時間帯は予約済みです。別のコーチまたは時間を選択してください', ru: 'занят. Выберите другого тренера или время', zh: '此时间忙碌，请选择其他教练或时间' },
+  alertTimePassed: { th: 'ไม่สามารถจองเวลาที่ผ่านไปแล้วได้', en: 'Cannot book a time slot that has already passed', ja: '過去の時間帯は予約できません', ru: 'Нельзя забронировать прошедшее время', zh: '无法预订已过去的时间' },
+  pastSlot: { th: 'ผ่านไปแล้ว', en: 'Passed', ja: '終了', ru: 'Прошло', zh: '已过' },
   alertMemberBookingSuccess: { th: 'ใช้สิทธิ์สมาชิกเรียบร้อยแล้ว การจองสำเร็จ!', en: 'Member quota used. Booking successful!', ja: '会員枠を使用しました。予約完了！', ru: 'Квота использована. Бронирование успешно!', zh: '会员额度已使用，预订成功！' },
   alertCalendarSent: { th: 'ส่งคำเชิญลงปฏิทินนัดหมายไปยัง', en: 'Calendar invite sent to', ja: 'カレンダー招待を送信しました:', ru: 'Приглашение отправлено:', zh: '日历邀请已发送至' },
   alertCalendarSentSuffix: { th: 'เรียบร้อยแล้ว', en: 'successfully', ja: '', ru: 'успешно', zh: '成功' },
@@ -447,6 +449,17 @@ export default function App() {
   for (let i = START_HOUR; i < END_HOUR; i++) {
     timeSlots.push(`${i.toString().padStart(2, '0')}:00 - ${(i + 1).toString().padStart(2, '0')}:00`);
   }
+
+  // Check if a time slot has already passed for a given date
+  const isSlotPassed = (date, time) => {
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    if (date < today) return true;
+    if (date > today) return false;
+    // Same day: check if the start hour has passed
+    const startHour = parseInt(time.split(':')[0], 10);
+    return now.getHours() >= startHour;
+  };
 
   const getTodayString = () => {
     const today = new Date();
@@ -970,6 +983,10 @@ export default function App() {
   };
 
   const openBookingModal = (machine, time) => {
+    if (isSlotPassed(currentDate, time)) {
+      alert(t('alertTimePassed'));
+      return;
+    }
     setSelectedSlot({ machine, time });
     setSelectedTime(time);
     setWithCoach(false);
@@ -2042,6 +2059,10 @@ export default function App() {
                                       </div>
                                     )
                                   )}
+                                </div>
+                              ) : isSlotPassed(currentDate, time) ? (
+                                <div className="p-2.5 text-center">
+                                  <span className="text-xs text-gray-300 font-medium">{t('pastSlot')}</span>
                                 </div>
                               ) : (
                                 <div
