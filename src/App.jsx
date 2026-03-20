@@ -826,6 +826,8 @@ export default function App() {
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null); // { phone, name } for coach-clients detail view
   const [expandedLessons, setExpandedLessons] = useState({}); // { noteId: 'detail' | 'homework' | null } for accordion
+  const [selectedLessonCoach, setSelectedLessonCoach] = useState(null); // coach name for customer lesson detail view
+  const [viewingLessonNote, setViewingLessonNote] = useState(null); // lesson note detail view
 
   // Report date range
   const [reportStartDate, setReportStartDate] = useState(() => {
@@ -1828,7 +1830,7 @@ export default function App() {
             )}
             {role === 'customer' && (
               <button
-                onClick={() => setViewMode('my-lessons')}
+                onClick={() => { setViewMode('my-lessons'); setSelectedLessonCoach(null); setViewingLessonNote(null); }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   viewMode === 'my-lessons'
                     ? 'bg-purple-600 text-white shadow-sm'
@@ -2267,23 +2269,177 @@ export default function App() {
           const myNotes = lessonNotes
             .filter(n => n.customerPhone === currentUser.phone)
             .sort((a, b) => b.lessonNumber - a.lessonNumber);
-
-          // Group notes by coach
           const byCoach = {};
           myNotes.forEach(n => {
             if (!byCoach[n.coachName]) byCoach[n.coachName] = [];
             byCoach[n.coachName].push(n);
           });
           const coachList = Object.keys(byCoach);
+          const myBookings = bookings.filter(b => b.phone === currentUser.phone && b.withCoach);
 
-          // Also get booking history for this customer
-          const myBookings = bookings
-            .filter(b => b.phone === currentUser.phone && b.withCoach)
-            .sort((a, b) => b.date.localeCompare(a.date));
+          // === Level 3: Viewing a single lesson note ===
+          if (viewingLessonNote) {
+            const note = viewingLessonNote;
+            return (
+              <div className="space-y-5">
+                <div className="card p-5">
+                  {/* Back */}
+                  <div className="flex items-center gap-3 mb-5">
+                    <button onClick={() => setViewingLessonNote(null)} className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+                      <ChevronLeft size={20} />
+                    </button>
+                    <div className="flex-1">
+                      <h2 className="text-lg font-semibold text-gray-900">{note.topic || `${t('lessonNumber')} ${note.lessonNumber}`}</h2>
+                      <div className="text-xs text-gray-400 flex items-center gap-2 mt-0.5">
+                        <span>{new Date(note.date).toLocaleDateString(currentLocale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                        <span>&middot;</span>
+                        <span className="flex items-center gap-1"><GraduationCap size={11} /> {note.coachName}</span>
+                      </div>
+                    </div>
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-sm font-bold shrink-0">
+                      {note.lessonNumber}
+                    </div>
+                  </div>
 
+                  {/* Topic */}
+                  {note.topic && (
+                    <div className="mb-5">
+                      <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1.5">{t('topicTaught')}</div>
+                      <div className="text-base font-medium text-gray-900">{note.topic}</div>
+                    </div>
+                  )}
+
+                  {/* Detail / Notes */}
+                  {note.notes && (
+                    <div className="mb-5">
+                      <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1.5">{t('lessonDetail')}</div>
+                      <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{note.notes}</p>
+                    </div>
+                  )}
+
+                  {/* Homework */}
+                  {note.homework && (
+                    <div className="mb-5 bg-amber-50/50 rounded-xl p-4 ring-1 ring-amber-100">
+                      <div className="text-xs font-medium text-amber-600 uppercase tracking-wide mb-1.5">{t('homeworkSection')}</div>
+                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{note.homework}</p>
+                    </div>
+                  )}
+
+                  {/* Attachments / Images */}
+                  {note.attachments && note.attachments.length > 0 && (
+                    <div>
+                      <div className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">{t('attachments')}</div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {note.attachments.map((att, i) => (
+                          att.type.startsWith('image/') ? (
+                            <img key={i} src={att.dataUrl} alt={att.name} className="w-full aspect-square rounded-xl object-cover ring-1 ring-gray-200 cursor-pointer hover:ring-purple-300 hover:shadow-md transition-all" onClick={() => window.open(att.dataUrl)} />
+                          ) : (
+                            <a key={i} href={att.dataUrl} download={att.name} className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-gray-50 ring-1 ring-gray-200 hover:bg-gray-100 transition-colors aspect-square">
+                              <Paperclip size={20} className="text-gray-400" />
+                              <span className="text-xs text-gray-600 text-center truncate w-full">{att.name}</span>
+                            </a>
+                          )
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          }
+
+          // === Level 2: Viewing lessons from a specific coach ===
+          if (selectedLessonCoach) {
+            const coachNotes = (byCoach[selectedLessonCoach] || []).sort((a, b) => a.lessonNumber - b.lessonNumber);
+            const coachInfo = getCoachInfo(selectedLessonCoach);
+            const coachBookings = myBookings.filter(b => b.coachName === selectedLessonCoach).sort((a, b) => b.date.localeCompare(a.date));
+
+            return (
+              <div className="space-y-5">
+                {/* Header */}
+                <div className="card p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <button onClick={() => setSelectedLessonCoach(null)} className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+                      <ChevronLeft size={20} />
+                    </button>
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
+                      <GraduationCap size={18} className="text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-base font-semibold text-gray-900">{selectedLessonCoach}</div>
+                      <div className="text-xs text-gray-400">{coachNotes.length} {t('lessonNotes')} &middot; {coachBookings.length} {t('sessions')}</div>
+                    </div>
+                    {coachInfo && (
+                      <button onClick={() => setViewingCoach(coachInfo)} className="text-xs text-purple-600 hover:text-purple-700 font-medium px-3 py-1.5 rounded-lg hover:bg-purple-50 transition-colors">
+                        {t('viewProfile')}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-purple-50 rounded-xl p-3 text-center">
+                      <div className="text-xl font-semibold text-purple-700">{coachNotes.length}</div>
+                      <div className="text-[11px] text-purple-500">{t('lessonNotes')}</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-3 text-center">
+                      <div className="text-xl font-semibold text-gray-700">{coachBookings.length}</div>
+                      <div className="text-[11px] text-gray-500">{t('sessions')}</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-3 text-center">
+                      <div className="text-sm font-semibold text-gray-700">{coachBookings[0] ? new Date(coachBookings[0].date).toLocaleDateString(currentLocale, { day: 'numeric', month: 'short' }) : '-'}</div>
+                      <div className="text-[11px] text-gray-500">{t('lastLesson')}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lesson list */}
+                <div className="space-y-3">
+                  {coachNotes.map(note => (
+                    <div
+                      key={note.id}
+                      onClick={() => setViewingLessonNote(note)}
+                      className="card p-4 cursor-pointer hover:ring-purple-200 transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center text-sm font-bold shrink-0 group-hover:bg-purple-100 group-hover:text-purple-700 transition-colors">
+                          {note.lessonNumber}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900">{note.topic || `${t('lessonNumber')} ${note.lessonNumber}`}</div>
+                          <div className="text-[11px] text-gray-400 mt-0.5">
+                            {new Date(note.date).toLocaleDateString(currentLocale, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                          </div>
+                          {note.homework && (
+                            <div className="text-[11px] text-amber-600 mt-0.5 flex items-center gap-1">
+                              <BookOpen size={10} /> {t('homeworkSection')}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {note.attachments && note.attachments.length > 0 && (
+                            <span className="text-[10px] text-gray-400 flex items-center gap-0.5"><Paperclip size={10} /> {note.attachments.length}</span>
+                          )}
+                          <ChevronRight size={16} className="text-gray-300 group-hover:text-purple-400 transition-colors" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {coachNotes.length === 0 && (
+                  <div className="card p-8 text-center">
+                    <FileText size={28} className="mx-auto mb-2 text-gray-200" />
+                    <p className="text-sm text-gray-400">{t('noNotesYet')}</p>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          // === Level 1: Coach list (main view) ===
           return (
             <div className="space-y-5">
-
               {/* Summary */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="card p-4 text-center">
@@ -2300,114 +2456,44 @@ export default function App() {
                 </div>
               </div>
 
-              {myNotes.length > 0 ? (
-                <>
-                  {/* Notes grouped by coach */}
+              {coachList.length > 0 ? (
+                <div className="space-y-3">
                   {coachList.map(coachName => {
-                    const coachNotes = byCoach[coachName].sort((a, b) => a.lessonNumber - b.lessonNumber);
+                    const coachNotes = byCoach[coachName].sort((a, b) => b.lessonNumber - a.lessonNumber);
                     const coachInfo = getCoachInfo(coachName);
+                    const latestNote = coachNotes[0];
                     return (
-                      <div key={coachName} className="card p-5">
-                        {/* Coach header */}
-                        <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100">
-                          <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
-                            <GraduationCap size={18} className="text-purple-600" />
+                      <div
+                        key={coachName}
+                        className="card p-4 cursor-pointer hover:ring-purple-200 transition-all group"
+                        onClick={() => setSelectedLessonCoach(coachName)}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center shrink-0 group-hover:bg-purple-200 transition-colors">
+                            <GraduationCap size={20} className="text-purple-600" />
                           </div>
-                          <div className="flex-1">
-                            <div className="text-sm font-semibold text-gray-900">{t('allLessonsFromCoach')} {coachName}</div>
-                            <div className="text-xs text-gray-400">{coachNotes.length} {t('sessions')}</div>
-                          </div>
-                          {coachInfo && (
-                            <button onClick={() => setViewingCoach(coachInfo)} className="text-xs text-purple-600 hover:text-purple-700 font-medium">
-                              {t('viewProfile')}
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Lesson cards with accordion */}
-                        <div className="space-y-3">
-                          {coachNotes.map((note) => {
-                            const isDetailOpen = expandedLessons[note.id] === 'detail';
-                            const isHomeworkOpen = expandedLessons[note.id] === 'homework';
-                            const toggleSection = (section) => {
-                              setExpandedLessons(prev => ({
-                                ...prev,
-                                [note.id]: prev[note.id] === section ? null : section
-                              }));
-                            };
-                            return (
-                              <div key={note.id} className="rounded-xl ring-1 ring-gray-200 bg-white overflow-hidden">
-                                {/* Header - always visible */}
-                                <div className="px-4 py-3 flex items-center gap-3">
-                                  <div className="w-7 h-7 rounded-md bg-gray-100 text-gray-600 flex items-center justify-center text-xs font-bold shrink-0">
-                                    {note.lessonNumber}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium text-gray-900">{note.topic || `${t('lessonNumber')} ${note.lessonNumber}`}</div>
-                                    <div className="text-[11px] text-gray-400">
-                                      {new Date(note.date).toLocaleDateString(currentLocale, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Detail dropdown */}
-                                {(note.notes || (note.attachments && note.attachments.length > 0)) && (
-                                  <>
-                                    <button
-                                      onClick={() => toggleSection('detail')}
-                                      className="w-full flex items-center justify-between px-4 py-2.5 border-t border-gray-100 text-left hover:bg-gray-50 transition-colors"
-                                    >
-                                      <span className="text-xs font-medium text-gray-500">{t('lessonDetail')}</span>
-                                      <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${isDetailOpen ? 'rotate-180' : ''}`} />
-                                    </button>
-                                    {isDetailOpen && (
-                                      <div className="px-4 pb-4 border-t border-gray-50">
-                                        {note.notes && (
-                                          <p className="text-sm text-gray-600 leading-relaxed pt-3 whitespace-pre-wrap">{note.notes}</p>
-                                        )}
-                                        {note.attachments && note.attachments.length > 0 && (
-                                          <div className="flex flex-wrap gap-2 mt-3">
-                                            {note.attachments.map((att, i) => (
-                                              att.type.startsWith('image/') ? (
-                                                <img key={i} src={att.dataUrl} alt={att.name} className="w-20 h-20 rounded-lg object-cover ring-1 ring-gray-200 cursor-pointer hover:ring-gray-300 transition-all" onClick={() => window.open(att.dataUrl)} />
-                                              ) : (
-                                                <a key={i} href={att.dataUrl} download={att.name} className="flex items-center gap-1.5 text-xs text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors ring-1 ring-gray-200">
-                                                  <Paperclip size={12} /> {att.name}
-                                                </a>
-                                              )
-                                            ))}
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
-                                  </>
-                                )}
-
-                                {/* Homework dropdown */}
-                                {note.homework && (
-                                  <>
-                                    <button
-                                      onClick={() => toggleSection('homework')}
-                                      className="w-full flex items-center justify-between px-4 py-2.5 border-t border-gray-100 text-left hover:bg-gray-50 transition-colors"
-                                    >
-                                      <span className="text-xs font-medium text-gray-500">{t('homeworkSection')}</span>
-                                      <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${isHomeworkOpen ? 'rotate-180' : ''}`} />
-                                    </button>
-                                    {isHomeworkOpen && (
-                                      <div className="px-4 pb-4 border-t border-gray-50">
-                                        <p className="text-sm text-gray-600 leading-relaxed pt-3 whitespace-pre-wrap">{note.homework}</p>
-                                      </div>
-                                    )}
-                                  </>
-                                )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-gray-900">{coachName}</span>
+                              <span className="bg-purple-100 text-purple-600 text-[10px] font-medium px-1.5 py-0.5 rounded-full">
+                                {coachNotes.length} {t('lessonNotes')}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-400 mt-0.5">
+                              {t('lastLesson')} {new Date(latestNote.date).toLocaleDateString(currentLocale, { day: 'numeric', month: 'short' })}
+                            </div>
+                            {latestNote.topic && (
+                              <div className="text-xs text-gray-500 mt-0.5 truncate">
+                                {t('lessonNumber')}{latestNote.lessonNumber}: {latestNote.topic}
                               </div>
-                            );
-                          })}
+                            )}
+                          </div>
+                          <ChevronRight size={18} className="text-gray-300 group-hover:text-purple-400 transition-colors shrink-0" />
                         </div>
                       </div>
                     );
                   })}
-                </>
+                </div>
               ) : (
                 <div className="card p-12 text-center">
                   <BookOpen size={40} className="mx-auto mb-3 text-gray-200" />
