@@ -1,1 +1,1 @@
-web: node --experimental-strip-types server/index.js
+web: npx prisma generate && node --experimental-strip-types server/index.js
