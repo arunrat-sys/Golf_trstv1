@@ -81,6 +81,60 @@ export default async function handler(req: any, res: any) {
       return json(res, user, 201);
     }
 
+    // ===== LINE LOGIN =====
+    if (url === '/api/auth/line/callback' && method === 'POST') {
+      const { code, redirectUri } = await parseBody(req);
+      const LINE_CHANNEL_ID = process.env.LINE_CHANNEL_ID;
+      const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
+
+      // Exchange code for access token
+      const tokenRes = await fetch('https://api.line.me/oauth2/v2.1/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          code,
+          redirect_uri: redirectUri,
+          client_id: LINE_CHANNEL_ID!,
+          client_secret: LINE_CHANNEL_SECRET!,
+        }),
+      });
+      if (!tokenRes.ok) {
+        const err = await tokenRes.text();
+        console.error('LINE token error:', err);
+        return json(res, { error: 'LINE authentication failed' }, 401);
+      }
+      const tokenData = await tokenRes.json();
+
+      // Get user profile
+      const profileRes = await fetch('https://api.line.me/v2/profile', {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` },
+      });
+      if (!profileRes.ok) {
+        return json(res, { error: 'Failed to get LINE profile' }, 401);
+      }
+      const profile = await profileRes.json();
+      // profile: { userId, displayName, pictureUrl, statusMessage }
+
+      // Find or create user by LINE ID
+      let user = await queryOne('SELECT * FROM "User" WHERE "lineId" = $1', [profile.userId]);
+      if (!user) {
+        // Check if user exists with same display name (optional: link by name)
+        // Create new user with LINE ID
+        user = await queryOne(
+          'INSERT INTO "User" (name, phone, password, role, "lineId", avatar) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+          [profile.displayName, 'LINE_' + profile.userId, '', 'customer', profile.userId, profile.pictureUrl || null]
+        );
+      } else {
+        // Update avatar and name if changed
+        user = await queryOne(
+          'UPDATE "User" SET name = $1, avatar = $2 WHERE id = $3 RETURNING *',
+          [profile.displayName, profile.pictureUrl || user.avatar, user.id]
+        );
+      }
+      return json(res, user);
+    }
+
     // ===== USERS =====
     if (url === '/api/users' && method === 'GET') {
       const users = await query('SELECT * FROM "User" ORDER BY id ASC');

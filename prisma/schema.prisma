@@ -15,6 +15,7 @@ model User {
   role      String   @default("customer") // admin, coach, customer
   coachName String?
   avatar    String?
+  lineId    String?  @unique
   createdAt DateTime @default(now())
 }
 

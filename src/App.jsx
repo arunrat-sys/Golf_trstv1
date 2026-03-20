@@ -61,6 +61,9 @@ const TRANSLATIONS = {
   errFillAll: { th: 'กรุณากรอกข้อมูลให้ครบ', en: 'Please fill in all fields', ja: 'すべての項目を入力してください', ru: 'Заполните все поля', zh: '请填写所有字段' },
   errPasswordMin: { th: 'รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร', en: 'Password must be at least 4 characters', ja: 'パスワードは4文字以上必要です', ru: 'Пароль минимум 4 символа', zh: '密码至少4个字符' },
   errPhoneUsed: { th: 'เบอร์โทรนี้ถูกใช้ลงทะเบียนแล้ว', en: 'This phone is already registered', ja: 'この電話番号は既に登録されています', ru: 'Этот номер уже зарегистрирован', zh: '该手机号已注册' },
+  loginWithLine: { th: 'เข้าสู่ระบบด้วย LINE', en: 'Login with LINE', ja: 'LINEでログイン', ru: 'Войти через LINE', zh: '使用LINE登录' },
+  orDivider: { th: 'หรือ', en: 'or', ja: 'または', ru: 'или', zh: '或' },
+  lineLoginError: { th: 'เข้าสู่ระบบ LINE ไม่สำเร็จ', en: 'LINE login failed', ja: 'LINEログインに失敗しました', ru: 'Ошибка входа через LINE', zh: 'LINE登录失败' },
   errEnterCoachName: { th: 'กรุณากรอกชื่อโค้ช', en: 'Please enter coach name', ja: 'コーチ名を入力してください', ru: 'Введите имя тренера', zh: '请输入教练姓名' },
 
   // ---- Top bar / Nav ----
@@ -1510,6 +1513,47 @@ export default function App() {
     }
   };
 
+  // LINE Login
+  const LINE_CHANNEL_ID = import.meta.env.VITE_LINE_CHANNEL_ID || '';
+  const LINE_REDIRECT_URI = `${window.location.origin}/`;
+
+  const handleLineLogin = () => {
+    const state = Math.random().toString(36).substring(2);
+    sessionStorage.setItem('line_state', state);
+    const lineAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CHANNEL_ID}&redirect_uri=${encodeURIComponent(LINE_REDIRECT_URI)}&state=${state}&scope=profile%20openid`;
+    window.location.href = lineAuthUrl;
+  };
+
+  // Handle LINE callback on page load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const state = params.get('state');
+    const savedState = sessionStorage.getItem('line_state');
+    if (code && state && state === savedState) {
+      sessionStorage.removeItem('line_state');
+      // Clean URL
+      window.history.replaceState({}, '', '/');
+      // Exchange code for user
+      (async () => {
+        try {
+          const user = await api('/api/auth/line/callback', {
+            method: 'POST',
+            body: { code, redirectUri: LINE_REDIRECT_URI },
+          });
+          setCurrentUser(user);
+          if (!appUsers.find(u => u.id === user.id)) {
+            setAppUsers(prev => [...prev, user]);
+          }
+          setViewMode('daily');
+        } catch (err) {
+          console.error('LINE login error:', err);
+          setAuthError(t('lineLoginError'));
+        }
+      })();
+    }
+  }, []);
+
   const handleLogout = () => {
     setCurrentUser(null);
     setAuthMode('login');
@@ -1651,6 +1695,26 @@ export default function App() {
                   <LogIn size={18} /> {t('login')}
                 </button>
 
+                {/* LINE Login */}
+                {LINE_CHANNEL_ID && (
+                  <>
+                    <div className="flex items-center gap-3 my-1">
+                      <div className="flex-1 h-px bg-gray-200"></div>
+                      <span className="text-xs text-gray-400">{t('orDivider')}</span>
+                      <div className="flex-1 h-px bg-gray-200"></div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleLineLogin}
+                      className="w-full py-3 rounded-xl font-medium text-white text-base flex items-center justify-center gap-2 transition-all hover:opacity-90"
+                      style={{ backgroundColor: '#06C755' }}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+                      {t('loginWithLine')}
+                    </button>
+                  </>
+                )}
+
                 {/* Demo accounts info */}
                 <div className="bg-gray-50/80 ring-1 ring-gray-100 rounded-xl p-4 mt-4">
                   <p className="text-xs font-medium text-gray-500 mb-2">{t('demoAccounts')}</p>
@@ -1725,6 +1789,26 @@ export default function App() {
                 <button type="submit" className="w-full py-3 btn-primary flex items-center justify-center gap-2 text-base">
                   <UserPlus size={18} /> {t('register')}
                 </button>
+
+                {/* LINE Login */}
+                {LINE_CHANNEL_ID && (
+                  <>
+                    <div className="flex items-center gap-3 my-1">
+                      <div className="flex-1 h-px bg-gray-200"></div>
+                      <span className="text-xs text-gray-400">{t('orDivider')}</span>
+                      <div className="flex-1 h-px bg-gray-200"></div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleLineLogin}
+                      className="w-full py-3 rounded-xl font-medium text-white text-base flex items-center justify-center gap-2 transition-all hover:opacity-90"
+                      style={{ backgroundColor: '#06C755' }}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+                      {t('loginWithLine')}
+                    </button>
+                  </>
+                )}
               </form>
             )}
           </div>
