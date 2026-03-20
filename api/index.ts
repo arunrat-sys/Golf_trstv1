@@ -1,7 +1,16 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import pg from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../src/generated/prisma/client.ts';
 
+// Prisma setup for serverless
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
+// Import route factories
 import authRoutes from '../server/routes/auth.js';
 import usersRoutes from '../server/routes/users.js';
 import coachesRoutes from '../server/routes/coaches.js';
@@ -14,7 +23,6 @@ import promoCodesRoutes from '../server/routes/promoCodes.js';
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
