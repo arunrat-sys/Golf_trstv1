@@ -962,6 +962,7 @@ export default function App() {
     const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
     return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`;
   });
+  const [bookingSearch, setBookingSearch] = useState('');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -3608,30 +3609,47 @@ export default function App() {
             </div>
 
             {/* Booking Detail Table */}
-            {reportData.filtered.length > 0 && (
+            {reportData.filtered.length > 0 && (() => {
+              const filteredBookings = bookingSearch.trim()
+                ? reportData.filtered.filter(b => {
+                    const q = bookingSearch.toLowerCase();
+                    return b.customerName.toLowerCase().includes(q) || b.phone.toLowerCase().includes(q);
+                  })
+                : reportData.filtered;
+              return (
               <div className="card p-5">
-                <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Calendar size={16} className="text-gray-400" /> {t('allBookings')} ({reportData.filtered.length} {t('items')})
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                    <Calendar size={16} className="text-gray-400" /> {t('allBookings')} ({filteredBookings.length} {t('items')})
+                  </h3>
+                  <div className="relative">
+                    <Filter size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input type="text" className="input-field pl-8 py-1.5 text-xs w-48" placeholder={t('searchBookingPlaceholder') || 'ค้นหาชื่อ / เบอร์โทร...'} value={bookingSearch} onChange={(e) => setBookingSearch(e.target.value)} />
+                  </div>
+                </div>
                 <div className="overflow-auto custom-scrollbar max-h-[50vh]">
-                  <table className="w-full text-left border-collapse min-w-[700px]">
+                  <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead className="sticky top-0 bg-white z-10">
                       <tr className="border-b border-gray-200 text-sm text-gray-500">
                         <th className="px-3 py-3 font-medium bg-white">{t('date')}</th>
                         <th className="px-3 py-3 font-medium bg-white">{t('timeCol')}</th>
                         <th className="px-3 py-3 font-medium bg-white">{t('machine')}</th>
                         <th className="px-3 py-3 font-medium bg-white">{t('customerCol')}</th>
+                        <th className="px-3 py-3 font-medium bg-white">{t('phone')}</th>
+                        <th className="px-3 py-3 font-medium text-center bg-white">{t('coachLabel') || 'โค้ช'}</th>
                         <th className="px-3 py-3 font-medium text-center bg-white">{t('statusCol')}</th>
                         <th className="px-3 py-3 font-medium text-right bg-white">{t('amount')}</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {reportData.filtered.map(b => (
+                      {filteredBookings.map(b => (
                         <tr key={b.id} className="border-b border-gray-50 table-row-hover">
                           <td className="px-3 py-2.5 text-sm text-gray-700">{b.date}</td>
                           <td className="px-3 py-2.5 text-sm text-gray-700">{b.time}</td>
                           <td className="px-3 py-2.5 text-sm text-gray-700">{b.machine}</td>
                           <td className="px-3 py-2.5 text-sm font-medium text-gray-800">{b.customerName}</td>
+                          <td className="px-3 py-2.5 text-sm text-gray-500">{b.phone}</td>
+                          <td className="px-3 py-2.5 text-sm text-center text-purple-600">{b.withCoach ? b.coachName : '-'}</td>
                           <td className="px-3 py-2.5 text-center">
                             <span className={`badge text-[10px] ${
                               b.status === 'booked' ? 'badge-booked' :
@@ -3645,9 +3663,11 @@ export default function App() {
                       ))}
                     </tbody>
                   </table>
+                  {filteredBookings.length === 0 && <div className="text-center py-8 text-gray-400 text-sm">{t('noDataForRange') || 'ไม่พบข้อมูล'}</div>}
                 </div>
               </div>
-            )}
+              );
+            })()}
           </div>
         )}
 
