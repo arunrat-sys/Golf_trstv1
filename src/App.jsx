@@ -2519,15 +2519,15 @@ export default function App() {
                 <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <Users size={18} className="text-gray-400"/> {t('memberListTitle')}
                 </h2>
-                <div className="overflow-x-auto custom-scrollbar">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-sm text-gray-500">
-                        <th className="px-4 py-3 font-medium">{t('customerName')}</th>
-                        <th className="px-4 py-3 font-medium">{t('contactPhone')}</th>
-                        <th className="px-4 py-3 font-medium">{t('lineEmail')}</th>
-                        <th className="px-4 py-3 font-medium text-center">{t('trackmanRemBought')}</th>
-                        <th className="px-4 py-3 font-medium text-center">{t('foresightRemBought')}</th>
+                <div className="overflow-auto custom-scrollbar max-h-[50vh]">
+                  <table className="w-full text-left border-collapse min-w-[700px]">
+                    <thead className="sticky top-0 bg-white z-10">
+                      <tr className="border-b border-gray-200 text-sm text-gray-500">
+                        <th className="px-4 py-3 font-medium bg-white">{t('customerName')}</th>
+                        <th className="px-4 py-3 font-medium bg-white">{t('contactPhone')}</th>
+                        <th className="px-4 py-3 font-medium bg-white">{t('lineEmail')}</th>
+                        <th className="px-4 py-3 font-medium text-center bg-white">{t('trackmanRemBought')}</th>
+                        <th className="px-4 py-3 font-medium text-center bg-white">{t('foresightRemBought')}</th>
                       </tr>
                     </thead>
                     <tbody>
