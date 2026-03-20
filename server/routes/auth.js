@@ -21,12 +21,12 @@ router.post('/login', async (req, res) => {
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { name, phone, password, role, coachName } = req.body;
+    const { name, phone, password, role, coachName, nickname, birthdate } = req.body;
     const exists = await prisma.user.findUnique({ where: { phone } });
     if (exists) return res.status(400).json({ error: 'Phone already registered' });
 
     const user = await prisma.user.create({
-      data: { name, phone, password, role: role || 'customer', coachName: coachName || null },
+      data: { name, phone, password, role: role || 'customer', coachName: coachName || null, nickname: nickname || null, birthdate: birthdate || null },
     });
     res.status(201).json(user);
   } catch (err) {

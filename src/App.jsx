@@ -46,7 +46,16 @@ const TRANSLATIONS = {
   enterPassword: { th: 'กรอกรหัสผ่าน', en: 'Enter password', ja: 'パスワードを入力', ru: 'Введите пароль', zh: '输入密码' },
   fullName: { th: 'ชื่อ-นามสกุล', en: 'Full Name', ja: '氏名', ru: 'Полное имя', zh: '姓名' },
   enterFullName: { th: 'กรอกชื่อ-นามสกุล', en: 'Enter full name', ja: '氏名を入力', ru: 'Введите полное имя', zh: '输入姓名' },
-  setPassword: { th: 'ตั้งรหัสผ่าน (อย่างน้อย 4 ตัว)', en: 'Set password (min 4 chars)', ja: 'パスワード設定（4文字以上）', ru: 'Пароль (мин. 4 символа)', zh: '设置密码（至少4位）' },
+  firstName: { th: 'ชื่อ', en: 'First Name', ja: '名', ru: 'Имя', zh: '名' },
+  enterFirstName: { th: 'กรอกชื่อ', en: 'Enter first name', ja: '名を入力', ru: 'Введите имя', zh: '输入名' },
+  lastName: { th: 'นามสกุล', en: 'Last Name', ja: '姓', ru: 'Фамилия', zh: '姓' },
+  enterLastName: { th: 'กรอกนามสกุล', en: 'Enter last name', ja: '姓を入力', ru: 'Введите фамилию', zh: '输入姓' },
+  nickname: { th: 'ชื่อเล่น', en: 'Nickname', ja: 'ニックネーム', ru: 'Никнейм', zh: '昵称' },
+  enterNickname: { th: 'กรอกชื่อเล่น', en: 'Enter nickname', ja: 'ニックネームを入力', ru: 'Введите никнейм', zh: '输入昵称' },
+  birthdate: { th: 'วันเดือนปีเกิด', en: 'Date of Birth', ja: '生年月日', ru: 'Дата рождения', zh: '出生日期' },
+  setPassword: { th: 'ตั้งรหัสผ่าน', en: 'Set password', ja: 'パスワード設定', ru: 'Пароль', zh: '设置密码' },
+  passwordRequirements: { th: 'อย่างน้อย 8 ตัว มีตัวพิมพ์ใหญ่ ตัวเลข และอักขระพิเศษ', en: 'Min 8 chars, uppercase, number & special char', ja: '8文字以上、大文字・数字・特殊文字を含む', ru: 'Мин. 8 символов, заглавная, цифра, спецсимвол', zh: '至少8位，含大写字母、数字和特殊字符' },
+  errPasswordWeak: { th: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัว มีตัวพิมพ์ใหญ่ ตัวเลข และอักขระพิเศษ (!@#$%)', en: 'Password needs 8+ chars, uppercase, number & special character', ja: 'パスワードは8文字以上で大文字・数字・特殊文字が必要です', ru: 'Пароль: 8+ символов, заглавная, цифра, спецсимвол', zh: '密码需8位以上，含大写字母、数字和特殊字符' },
   accountType: { th: 'ประเภทบัญชี', en: 'Account Type', ja: 'アカウント種別', ru: 'Тип аккаунта', zh: '账户类型' },
   customer: { th: 'ลูกค้า', en: 'Customer', ja: 'お客様', ru: 'Клиент', zh: '客户' },
   coach: { th: 'โค้ช', en: 'Coach', ja: 'コーチ', ru: 'Тренер', zh: '教练' },
@@ -764,6 +773,9 @@ export default function App() {
   const [authPhone, setAuthPhone] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authName, setAuthName] = useState('');
+  const [authLastName, setAuthLastName] = useState('');
+  const [authNickname, setAuthNickname] = useState('');
+  const [authBirthdate, setAuthBirthdate] = useState('');
   const [authRole, setAuthRole] = useState('customer');
   const [authCoachName, setAuthCoachName] = useState('');
   const [authError, setAuthError] = useState('');
@@ -1487,21 +1499,26 @@ export default function App() {
     }
   };
 
+  const isPasswordStrong = (pw) => {
+    return pw.length >= 8 && /[A-Z]/.test(pw) && /[0-9]/.test(pw) && /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw);
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
     setAuthError('');
-    if (!authName.trim() || !authPhone.trim() || !authPassword.trim()) {
+    if (!authName.trim() || !authLastName.trim() || !authNickname.trim() || !authBirthdate || !authPhone.trim() || !authPassword.trim()) {
       setAuthError(t('errFillAll'));
       return;
     }
-    if (authPassword.length < 4) {
-      setAuthError(t('errPasswordMin'));
+    if (!isPasswordStrong(authPassword)) {
+      setAuthError(t('errPasswordWeak'));
       return;
     }
+    const fullName = `${authName.trim()} ${authLastName.trim()} (${authNickname.trim()})`;
     try {
       const newUser = await api('/api/auth/register', {
         method: 'POST',
-        body: { name: authName.trim(), phone: authPhone.trim(), password: authPassword, role: 'customer' },
+        body: { name: fullName, phone: authPhone.trim(), password: authPassword, role: 'customer', nickname: authNickname.trim(), birthdate: authBirthdate },
       });
       setAppUsers([...appUsers, newUser]);
       setCurrentUser(newUser);
@@ -1509,6 +1526,9 @@ export default function App() {
       setAuthPhone('');
       setAuthPassword('');
       setAuthName('');
+      setAuthLastName('');
+      setAuthNickname('');
+      setAuthBirthdate('');
       setAuthCoachName('');
     } catch (err) {
       setAuthError(t('errPhoneUsed'));
@@ -1757,20 +1777,62 @@ export default function App() {
                 </div>
               </form>
             ) : (
-              <form onSubmit={handleRegister} className="space-y-4">
-                <div>
-                  <label className="flex items-center gap-2 text-gray-600 text-sm font-medium mb-1.5">
-                    <User size={14} /> {t('fullName')}
-                  </label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    value={authName}
-                    onChange={(e) => setAuthName(e.target.value)}
-                    placeholder={t('enterFullName')}
-                    autoFocus
-                    required
-                  />
+              <form onSubmit={handleRegister} className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="flex items-center gap-2 text-gray-600 text-sm font-medium mb-1.5">
+                      <User size={14} /> {t('firstName')}
+                    </label>
+                    <input
+                      type="text"
+                      className="input-field"
+                      value={authName}
+                      onChange={(e) => setAuthName(e.target.value)}
+                      placeholder={t('enterFirstName')}
+                      autoFocus
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-gray-600 text-sm font-medium mb-1.5 block">
+                      {t('lastName')}
+                    </label>
+                    <input
+                      type="text"
+                      className="input-field"
+                      value={authLastName}
+                      onChange={(e) => setAuthLastName(e.target.value)}
+                      placeholder={t('enterLastName')}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="flex items-center gap-2 text-gray-600 text-sm font-medium mb-1.5">
+                      <Star size={14} className="text-yellow-500" /> {t('nickname')}
+                    </label>
+                    <input
+                      type="text"
+                      className="input-field"
+                      value={authNickname}
+                      onChange={(e) => setAuthNickname(e.target.value)}
+                      placeholder={t('enterNickname')}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-2 text-gray-600 text-sm font-medium mb-1.5">
+                      <CalendarDays size={14} className="text-blue-500" /> {t('birthdate')}
+                    </label>
+                    <input
+                      type="date"
+                      className="input-field"
+                      value={authBirthdate}
+                      onChange={(e) => setAuthBirthdate(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="flex items-center gap-2 text-gray-600 text-sm font-medium mb-1.5">
@@ -1806,9 +1868,22 @@ export default function App() {
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
+                  <p className="text-[11px] text-gray-400 mt-1">{t('passwordRequirements')}</p>
+                  {authPassword && (
+                    <div className="flex items-center gap-2 mt-1.5">
+                      {[
+                        { ok: authPassword.length >= 8, label: '8+' },
+                        { ok: /[A-Z]/.test(authPassword), label: 'A-Z' },
+                        { ok: /[0-9]/.test(authPassword), label: '0-9' },
+                        { ok: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(authPassword), label: '!@#' },
+                      ].map((r, i) => (
+                        <span key={i} className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${r.ok ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400'}`}>
+                          {r.ok ? '✓' : '✗'} {r.label}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-
-                {/* Role is always customer for public registration */}
 
                 {authError && (
                   <div className="bg-red-50 ring-1 ring-red-200 text-red-600 text-sm p-3 rounded-xl flex items-center gap-2">

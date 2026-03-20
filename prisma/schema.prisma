@@ -16,6 +16,8 @@ model User {
   coachName String?
   avatar    String?
   lineId    String?  @unique
+  nickname  String?
+  birthdate String?
   createdAt DateTime @default(now())
 }
 

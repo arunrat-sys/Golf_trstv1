@@ -71,12 +71,12 @@ export default async function handler(req: any, res: any) {
     }
 
     if (url === '/api/auth/register' && method === 'POST') {
-      const { name, phone, password, role, coachName } = await parseBody(req);
+      const { name, phone, password, role, coachName, nickname, birthdate } = await parseBody(req);
       const exists = await queryOne('SELECT id FROM "User" WHERE phone = $1', [phone]);
       if (exists) return json(res, { error: 'Phone already registered' }, 400);
       const user = await queryOne(
-        'INSERT INTO "User" (name, phone, password, role, "coachName") VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [name, phone, password, role || 'customer', coachName || null]
+        'INSERT INTO "User" (name, phone, password, role, "coachName", nickname, birthdate) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+        [name, phone, password, role || 'customer', coachName || null, nickname || null, birthdate || null]
       );
       return json(res, user, 201);
     }
